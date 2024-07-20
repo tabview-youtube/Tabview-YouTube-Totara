@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.003
+// @version               5.0.004
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -50,7 +50,7 @@ SOFTWARE.
 // @description:ar        لإنشاء علامات تبويب للمعلومات والتعليقات والفيديو وقائمة التشغيل
 
 // @icon                  https://raw.githubusercontent.com/tabview-youtube/Tabview-YouTube-Totara/main/images/icon128p.png
-// @supportURL            https://github.com/cyfung1031/Tabview-Youtube
+// @supportURL            https://github.com/tabview-youtube/Tabview-YouTube-Totara
 // @run-at                document-start
 // @grant                 GM_getResourceText
 // @grant                 GM.getResourceText
