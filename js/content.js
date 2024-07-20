@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.1
+// @version               5.0.002
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -49,6 +49,7 @@ SOFTWARE.
 // @description:pt        Para fazer abas para Informações, Comentários, Vídeos e Playlist
 // @description:ar        لإنشاء علامات تبويب للمعلومات والتعليقات والفيديو وقائمة التشغيل
 
+// @icon                  https://raw.githubusercontent.com/tabview-youtube/Tabview-YouTube-Totara/main/images/icon128p.png
 // @supportURL            https://github.com/cyfung1031/Tabview-Youtube
 // @run-at                document-start
 // @grant                 GM_getResourceText
@@ -114,7 +115,9 @@ const executionScript = (communicationKey) => {
     }
   }
 
-
+  if (typeof CustomElementRegistry === 'undefined') return;
+  if (CustomElementRegistry.prototype.define000) return;
+  if (typeof CustomElementRegistry.prototype.define !== 'function') return;
   CustomElementRegistry.prototype.define000 = CustomElementRegistry.prototype.define;
   CustomElementRegistry.prototype.define = function (a, b, ...args) {
     // b.prototype.connectedCallback000 =b.prototype.connectedCallback;
@@ -708,9 +711,10 @@ const executionScript = (communicationKey) => {
 
     for (const entry of entries) {
       const target = entry.target;
-      if (entry.isIntersecting && target instanceof HTMLElement && typeof target.calculateCanCollapse === 'function') {
+      const cnt = insp(target);
+      if (entry.isIntersecting && target instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
         removeKeepCommentsScrollerFlg = 0;
-        target.calculateCanCollapse(true);
+        cnt.calculateCanCollapse(true);
         target.setAttribute111('io-intersected', '');
         const ytdFlexyElm = elements.flexy;
         if (ytdFlexyElm && !ytdFlexyElm.hasAttribute000('keep-comments-scroller')) {
@@ -727,27 +731,19 @@ const executionScript = (communicationKey) => {
     rootMargin: "32px" // enlarging viewport for getting intersection earlier
   });
 
+
+  let bFixForResizedTabLater = false;
   let lastRoRightTabsWidth = 0;
   const roRightTabs = new ResizeObserver((entries) => {
     const entry = entries[entries.length - 1];
     const width = Math.round(entry.borderBoxSize.inlineSize);
     if (lastRoRightTabsWidth !== width) {
       lastRoRightTabsWidth = width;
-      for (const element of document.querySelectorAll('[io-intersected]')) {
-        const cnt = insp(element);
-        if (element instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
-          try {
-            cnt.calculateCanCollapse(true);
-          } catch (e) { }
-        }
-      }
-      for (const element of document.querySelectorAll('ytd-video-description-infocards-section-renderer, yt-chip-cloud-renderer')) {
-        const cnt = insp(element);
-        if (element instanceof HTMLElement && typeof cnt.notifyResize === 'function') {
-          try {
-            cnt.notifyResize();
-          } catch (e) { }
-        }
+      if ((tabAStatus & 2) === 2) {
+        bFixForResizedTabLater = false;
+        Promise.resolve(1).then(eventMap['fixForResizedTab']);
+      } else {
+        bFixForResizedTabLater = true;
       }
     }
     console.log('resize')
@@ -2032,6 +2028,30 @@ const executionScript = (communicationKey) => {
 
     },
 
+    'fixForResizedTab': (isResize) => {
+
+      bFixForResizedTabLater = false;
+      for (const element of document.querySelectorAll('[io-intersected]')) {
+        const cnt = insp(element);
+        if (element instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
+          try {
+            cnt.calculateCanCollapse(true);
+          } catch (e) { }
+        }
+      }
+
+      if (!isResize) {
+        for (const element of document.querySelectorAll('ytd-video-description-infocards-section-renderer, yt-chip-cloud-renderer')) {
+          const cnt = insp(element);
+          if (element instanceof HTMLElement && typeof cnt.notifyResize === 'function') {
+            try {
+              cnt.notifyResize();
+            } catch (e) { }
+          }
+        }
+      }
+
+    },
 
     'ytd-watch-flexy::defined': (cProto) => {
 
@@ -2409,7 +2429,7 @@ const executionScript = (communicationKey) => {
       hostElement.__connectedFlg__ = 5;
       // console.log(4959, hostElement)
 
-      if (hostElement instanceof HTMLElement && hostElement.matches('[tyt-comments-block] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
+      if (hostElement instanceof HTMLElement && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
 
         hostElement.setAttribute111('tyt-content-comment-entry', '')
         ioComment.observe(hostElement);
@@ -2795,6 +2815,12 @@ const executionScript = (communicationKey) => {
         }
         tabAStatus = q;
 
+        let bFixForResizedTab = false;
+
+        if( (q^2) === 2 && bFixForResizedTabLater ){
+          bFixForResizedTab = true;
+        }
+
         if ((p & 16) === 16 & (q & 16) === 0) {
           Promise.resolve().then(() => {
             for (const continuation of document.querySelectorAll('#tab-videos ytd-watch-next-secondary-results-renderer ytd-continuation-item-renderer')) {
@@ -2810,6 +2836,10 @@ const executionScript = (communicationKey) => {
               }
             }
           })
+        }
+
+        if ((((p & 2) === 2) ^ ((q & 2) === 2)) && ((q & 2) === 2)) {
+          bFixForResizedTab = true;
         }
 
         if ((q & 64) === 64) {
@@ -2912,6 +2942,11 @@ const executionScript = (communicationKey) => {
           }
         }
 
+
+        if (bFixForResizedTab) {
+          bFixForResizedTabLater = false;
+          Promise.resolve(0).then(eventMap['fixForResizedTab']);
+        }
 
       }
       
