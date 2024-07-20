@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.005
+// @version               5.0.006
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -4051,6 +4051,18 @@ body ytd-app > ytd-popup-container > tp-yt-iron-dropdown > #contentWrapper >  [s
 #tab-info #items.ytd-horizontal-card-list-renderer yt-video-attribute-view-model.ytd-horizontal-card-list-renderer {
     contain: layout;
   }
+
+
+/* https://www.youtube.com/watch?v=2h3pbdTPu6Q */
+
+#tab-info #thumbnail-container.ytd-structured-description-channel-lockup-renderer {
+  
+    flex-shrink: 0;
+}
+#tab-info ytd-media-lockup-renderer[is-compact] #thumbnail-container.ytd-media-lockup-renderer {
+  
+    flex-shrink: 0;
+}
 
 
   `
