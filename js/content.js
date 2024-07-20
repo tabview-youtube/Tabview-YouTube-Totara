@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.002
+// @version               5.0.003
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -741,7 +741,7 @@ const executionScript = (communicationKey) => {
       lastRoRightTabsWidth = width;
       if ((tabAStatus & 2) === 2) {
         bFixForResizedTabLater = false;
-        Promise.resolve(1).then(eventMap['fixForResizedTab']);
+        Promise.resolve(1).then(eventMap['fixForTabDisplay']);
       } else {
         bFixForResizedTabLater = true;
       }
@@ -787,6 +787,11 @@ const executionScript = (communicationKey) => {
     }
 
     ytdFlexyElm.setAttribute111('tyt-tab', switchingTo);
+
+    if (switchingTo) {
+      bFixForResizedTabLater = false;
+      Promise.resolve(0).then(eventMap['fixForTabDisplay']);
+    }
 
   }
 
@@ -2028,7 +2033,7 @@ const executionScript = (communicationKey) => {
 
     },
 
-    'fixForResizedTab': (isResize) => {
+    'fixForTabDisplay': (isResize) => {
 
       bFixForResizedTabLater = false;
       for (const element of document.querySelectorAll('[io-intersected]')) {
@@ -2945,7 +2950,7 @@ const executionScript = (communicationKey) => {
 
         if (bFixForResizedTab) {
           bFixForResizedTabLater = false;
-          Promise.resolve(0).then(eventMap['fixForResizedTab']);
+          Promise.resolve(0).then(eventMap['fixForTabDisplay']);
         }
 
       }
