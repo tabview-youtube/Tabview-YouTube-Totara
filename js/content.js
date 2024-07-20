@@ -1,0 +1,4011 @@
+/*
+
+MIT License
+
+Copyright (c) 2024 cyfung1031
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+// ==UserScript==
+// @name                  Tabview YouTube Totara
+// @namespace             https://www.youtube.com/
+// @author                CY Fung
+// @license               MIT
+// @match                 https://www.youtube.com/*
+// @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
+// @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
+
+// @version               5.0.1
+// @author                CY Fung
+// @description           To make tabs for Info, Comments, Videos and Playlist
+
+// @description:es        Para crear pestañas para Información, Comentarios, Videos y Lista de reproducción
+// @description:fr        Pour créer des onglets pour Infos, Commentaires, Vidéos et Playlist
+// @description:de        Um Tabs für Informationen, Kommentare, Videos und Playlist zu erstellen
+// @description:zh        制作信息、评论、视频和播放列表的标签
+// @description:zh-CN     制作信息、评论、视频和播放列表的标签
+// @description:zh-TW     製作資訊、評論、影片和播放列表的標籤
+// @description:zh-HK     製作資訊、評論、影片視頻和播放列表的標籤
+// @description:ja        情報、コメント、動画、および再生リストのタブを作成するために
+// @description:ko        정보, 댓글, 동영상 및 재생 목록에 대한 탭 만들기
+// @description:ru        Чтобы создать вкладки для Информации, Комментариев, Видео и Плейлиста
+// @description:pt        Para fazer abas para Informações, Comentários, Vídeos e Playlist
+// @description:ar        لإنشاء علامات تبويب للمعلومات والتعليقات والفيديو وقائمة التشغيل
+
+// @supportURL            https://github.com/cyfung1031/Tabview-Youtube
+// @run-at                document-start
+// @grant                 GM_getResourceText
+// @grant                 GM.getResourceText
+// @grant                 GM_registerMenuCommand
+// @grant                 GM_addElement
+// @noframes
+// @require               https://cdn.jsdelivr.net/gh/cyfung1031/userscript-supports@7221a4efffd49d852de0074ec503d4febb99f28b/library/nextBrowserTick.min.js
+//
+// ==/UserScript==
+
+  
+const executionScript = (communicationKey) => {
+  executionFinished = 0;
+  // const connectedCallbackX = function () {
+  //   console.log(59391, this.is, 'connectedCallbackX');
+  //   if (typeof this.connectedCallback000 === 'function') {
+  //     return this.connectedCallback000(...arguments);
+  //   }
+  // }
+  // const disconnectedCallbackX = function () {
+  //   console.log(59392, this.is, 'disconnectedCallbackX');
+  //   if (typeof this.disconnectedCallback000 === 'function') {
+  //     return this.disconnectedCallback000(...arguments);
+  //   }
+  // }
+
+
+  const connectedCallbackY = function (callback) {
+    return function () {
+      // console.log(59391, this.is, 'connectedCallbackY');
+      if (executionFinished && typeof (this || 0).is === 'string') {
+        const f = eventMap[`${this.is}::connectedCallback`];
+        if (f) {
+          const hostElement = this.hostElement || this;
+          if (hostElement instanceof HTMLElement) {
+            hostElement.__connectedFlg__ = 4;
+            hostElement && Promise.resolve(hostElement).then(f).catch(console.warn);
+          }
+        }
+      }
+      if (typeof callback === 'function') {
+        return callback.call(this, ...arguments);
+      }
+    }
+  }
+  const disconnectedCallbackY = function (callback) {
+    return function () {
+      // console.log(59392, this.is, 'disconnectedCallbackY');
+      if (executionFinished && typeof (this || 0).is === 'string') {
+        const f = eventMap[`${this.is}::disconnectedCallback`];
+        if (f) {
+          const hostElement = this.hostElement || this;
+          if (hostElement instanceof HTMLElement) {
+            hostElement.__connectedFlg__ = 8;
+            hostElement && Promise.resolve(hostElement).then(f).catch(console.warn);
+          }
+        }
+      }
+      if (typeof callback === 'function') {
+        return callback.call(this, ...arguments);
+      }
+    }
+  }
+
+
+  CustomElementRegistry.prototype.define000 = CustomElementRegistry.prototype.define;
+  CustomElementRegistry.prototype.define = function (a, b, ...args) {
+    // b.prototype.connectedCallback000 =b.prototype.connectedCallback;
+    // b.prototype.disconnectedCallback000 =b.prototype.disconnectedCallback;
+    b.prototype.connectedCallback = connectedCallbackY(b.prototype.connectedCallback);
+    b.prototype.disconnectedCallback = disconnectedCallbackY(b.prototype.disconnectedCallback);
+    // b.prototype.__ce_tag__ = a;
+    // b.__ce_tag__ = a;
+    if (this instanceof CustomElementRegistry) {
+      return this.define000(a, b, ...args);
+    } else {
+      return customElements.define000(a, b, ...args);
+    }
+  }
+
+  const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
+
+  Object.defineProperties(DocumentFragment.prototype, {
+    replaceChildren000: pdsBaseDF.replaceChildren,
+  });
+
+  const pdsBaseNode = Object.getOwnPropertyDescriptors(Node.prototype);
+  // console.log(pdsBaseElement.setAttribute, pdsBaseElement.getAttribute)
+
+  Object.defineProperties(Node.prototype, {
+    removeChild000: pdsBaseNode.removeChild,
+    appendChild000: pdsBaseNode.appendChild,
+    insertBefore000: pdsBaseNode.insertBefore
+  });
+
+  // class BaseElement extends Element{
+
+  // }
+  const pdsBaseElement = Object.getOwnPropertyDescriptors(Element.prototype);
+  // console.log(pdsBaseElement.setAttribute, pdsBaseElement.getAttribute)
+
+  Object.defineProperties(Element.prototype, {
+    setAttribute000: pdsBaseElement.setAttribute,
+    getAttribute000: pdsBaseElement.getAttribute,
+    hasAttribute000: pdsBaseElement.hasAttribute,
+    removeAttribute000: pdsBaseElement.removeAttribute,
+    querySelector000: pdsBaseElement.querySelector,
+    replaceChildren000: pdsBaseElement.replaceChildren,
+    remove000: pdsBaseElement.remove
+  });
+
+  Element.prototype.setAttribute111 = function (p, v) {
+    v = `${v}`;
+    if (this.getAttribute000(p) === v) return;
+    this.setAttribute000(p, v)
+  }
+
+  Element.prototype.assignChildern111 = function (previousSiblings, node, nextSiblings) {
+    if (node.parentNode === this) {
+      let nodeList = [];
+      for (let t = this.firstChild; t instanceof Node; t = t.nextSibling) {
+        if (t === node) continue;
+        nodeList.push(t);
+      }
+      let fm = new DocumentFragment();
+      if (nodeList.length > 0) {
+        fm.replaceChildren000(...nodeList);
+        nodeList.length = 0;
+      }
+      nodeList = null;
+      if (previousSiblings && previousSiblings.length > 0) {
+        fm.replaceChildren000(...previousSiblings);
+        this.insertBefore000(fm, node);
+      }
+      if (nextSiblings && nextSiblings.length > 0) {
+        fm.replaceChildren000(...nextSiblings);
+        this.appendChild000(fm);
+      }
+      fm.replaceChildren000();
+      fm = null;
+    } else {
+      if (!previousSiblings) previousSiblings = [];
+      if (!nextSiblings) nextSiblings = [];
+      this.replaceChildren000(...previousSiblings, node, ...nextSiblings);
+    }
+  }
+
+
+  // ==============================================================================================================================================================================================================================================================================
+
+  const DISABLE_FLAGS_SHADYDOM_FREE = true;
+
+  /**
+   * 
+   * Minified Code from https://greasyfork.org/en/scripts/475632-ytconfighacks/code (ytConfigHacks)
+   * Date: 2024.04.17
+   * Minifier: https://www.toptal.com/developers/javascript-minifier
+   * 
+   */
+  (() => {
+    let e = "undefined" != typeof unsafeWindow ? unsafeWindow : this instanceof Window ?
+      this : window; if (!e._ytConfigHacks) {
+        let t = 4; class n extends Set {
+          add(e) {
+            if (t <= 0) return console.warn(
+              "yt.config_ is already applied on the page."); "function" == typeof e && super.add(e)
+          }
+        } let a = (async () => { })()
+          .constructor, i = e._ytConfigHacks = new n, l = () => { let t = e.ytcsi.originalYtcsi; t && (e.ytcsi = t, l = null) },
+          c = null, o = () => {
+            if (t >= 1) {
+              let n = (e.yt || 0).config_ || (e.ytcfg || 0).data_ || 0; if ("string" == typeof n.
+                INNERTUBE_API_KEY && "object" == typeof n.EXPERIMENT_FLAGS) for (let a of (--t <= 0 && l && l(), c = !0, i)) a(n)
+            }
+          }, f = 1,
+          d = t => {
+            if (t = t || e.ytcsi) return e.ytcsi = new Proxy(t, { get: (e, t, n) => "originalYtcsi" === t ? e : (o(), c && --f <= 0 && l && l(), e[t]) })
+              , !0
+          }; d() || Object.defineProperty(e, "ytcsi", {
+            get() { }, set: t => (t && (delete e.ytcsi, d(t)), !0), enumerable: !1, configurable: !0
+          }); let { addEventListener: s, removeEventListener: y } = Document.prototype; function r(t) {
+            o(),
+              t && e.removeEventListener("DOMContentLoaded", r, !1)
+          } new a(e => {
+            if ("undefined" != typeof AbortSignal) s.call(document,
+              "yt-page-data-fetched", e, { once: !0 }), s.call(document, "yt-navigate-finish", e, { once: !0 }), s.call(document, "spfdone", e,
+                { once: !0 }); else {
+              let t = () => {
+                e(), y.call(document, "yt-page-data-fetched", t, !1), y.call(document, "yt-navigate-finish", t, !1),
+                  y.call(document, "spfdone", t, !1)
+              }; s.call(document, "yt-page-data-fetched", t, !1), s.call(document, "yt-navigate-finish", t, !1),
+                s.call(document, "spfdone", t, !1)
+            }
+          }).then(o), new a(e => {
+            if ("undefined" != typeof AbortSignal) s.call(document, "yt-action", e,
+              { once: !0, capture: !0 }); else { let t = () => { e(), y.call(document, "yt-action", t, !0) }; s.call(document, "yt-action", t, !0) }
+          }).then(o),
+            a.resolve().then(() => { "loading" !== document.readyState ? r() : e.addEventListener("DOMContentLoaded", r, !1) })
+      }
+  })();
+
+  let configOnce = false;
+  window._ytConfigHacks.add((config_) => {
+    if (configOnce) return;
+    configOnce = true;
+
+    const EXPERIMENT_FLAGS = config_.EXPERIMENT_FLAGS || 0;
+    const EXPERIMENTS_FORCED_FLAGS = config_.EXPERIMENTS_FORCED_FLAGS || 0;
+    for (const flags of [EXPERIMENT_FLAGS, EXPERIMENTS_FORCED_FLAGS]) {
+      if (flags) {
+        // flags.kevlar_watch_metadata_refresh_no_old_secondary_data = false;
+        // flags.live_chat_overflow_hide_chat = false;
+        flags.web_watch_chat_hide_button_killswitch = false;
+        flags.web_watch_theater_chat = false; // for re-openable chat (ytd-watch-flexy's liveChatCollapsed is always undefined)
+        flags.suppress_error_204_logging = true;
+        flags.kevlar_watch_grid = false;  // A/B testing for watch grid
+
+        if (DISABLE_FLAGS_SHADYDOM_FREE) {
+          flags.enable_shadydom_free_scoped_node_methods = false;
+          flags.enable_shadydom_free_scoped_query_methods = false;
+          flags.enable_shadydom_free_scoped_readonly_properties_batch_one = false;
+          flags.enable_shadydom_free_parent_node = false;
+          flags.enable_shadydom_free_children = false;
+          flags.enable_shadydom_free_last_child = false;
+        }
+      }
+    }
+
+  });
+
+  // ==============================================================================================================================================================================================================================================================================
+
+
+  /* globals WeakRef:false */
+
+  /** @type {(o: Object | null) => WeakRef | null} */
+  const mWeakRef = typeof WeakRef === 'function' ? (o => o ? new WeakRef(o) : null) : (o => o || null); // typeof InvalidVar == 'undefined'
+
+  /** @type {(wr: Object | null) => Object | null} */
+  const kRef = (wr => (wr && wr.deref) ? wr.deref() : wr);
+
+
+  /** @type {globalThis.PromiseConstructor} */
+  const Promise = (async () => { })().constructor; // YouTube hacks Promise in WaterFox Classic and "Promise.resolve(0)" nevers resolve.
+
+  const delayPn = delay => new Promise((fn => setTimeout(fn, delay)));
+
+  const insp = o => o ? (o.polymerController || o.inst || o || 0) : (o || 0);
+
+  const PromiseExternal = ((resolve_, reject_) => {
+    const h = (resolve, reject) => { resolve_ = resolve; reject_ = reject };
+    return class PromiseExternal extends Promise {
+      constructor(cb = h) {
+        super(cb);
+        if (cb === h) {
+          /** @type {(value: any) => void} */
+          this.resolve = resolve_;
+          /** @type {(reason?: any) => void} */
+          this.reject = reject_;
+        }
+      }
+    };
+  })();
+
+  // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
+  !function (e) {
+    "use strict"; if (e.nextBrowserTick) return; if (!function () {
+      if (e.postMessage && !e.importScripts && e.addEventListener) {
+        let t = !0, s = () => { t = !1 };
+        return e.addEventListener("message", s, !1), e.postMessage("", "*"), e.removeEventListener("message", s, !1), t
+      }
+    }())
+      return void console.warn("Your browser environment cannot use nextBrowserTick"); const t = (async () => { })().constructor,
+        s = ((e, s) => { const n = (t, n) => { e = t, s = n }; return class extends t { constructor(t = n) { super(t), t === n && (this.resolve = e, this.reject = s) } } })();
+    let n, r = null; do { n = `$$nextBrowserTick$$${(Math.random() + 8).toString().slice(2)}$$` } while (n in e); const o = n; e[o] = 1; e.addEventListener("message",
+      (e => { (null !== r ? (e || 0).data : 0) === o && e.source === (e.target || 1) && r.resolve(r = null) }), !1), e.nextBrowserTick = t => {
+        r || (r = new s, e.postMessage(o, "*")),
+          r.then(t).catch(console.warn)
+      }
+  }("undefined" == typeof self ? "undefined" == typeof global ? this : global : self);
+
+  // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
+
+  const isPassiveArgSupport = (typeof IntersectionObserver === 'function');
+  const bubblePassive = isPassiveArgSupport ? { capture: false, passive: true } : false;
+  const capturePassive = isPassiveArgSupport ? { capture: true, passive: true } : true;
+
+
+
+  class Attributer {
+    constructor(list) {
+      this.list = list;
+      this.flag = 0;
+    }
+    makeString() {
+      let k = 1;
+      let s = '';
+      let i = 0;
+      while (this.flag >= k) {
+        if (this.flag & k) {
+          s += this.list[i];
+        }
+        i++;
+        k <<= 1;
+      }
+      return s;
+    }
+  }
+
+  const mLoaded = new Attributer('icp');
+
+  const wrSelfMap = new WeakMap();
+
+  /** @type {Object.<string, Element | null>} */
+  const elements = new Proxy({
+    related: null,
+    comments: null,
+    infoExpander: null,
+  }, {
+    get(target, prop) {
+      return kRef(target[prop]);
+    },
+    set(target, prop, value) {
+      if (value) {
+        let wr = wrSelfMap.get(value);
+        if (!wr) {
+          wr = mWeakRef(value);
+          wrSelfMap.set(value, wr);
+        }
+        target[prop] = wr;
+      } else {
+        target[prop] = null;
+      }
+      return true;
+    }
+  });
+
+
+  let pageType = null;
+
+  let pageLang = 'en';
+  const langWords = {
+    'en': {
+      //'share':'Share',
+      'info': 'Info',
+      'videos': 'Videos',
+      'playlist': 'Playlist'
+    },
+    'jp': {
+      //'share':'共有',
+      'info': '情報',
+      'videos': '動画',
+      'playlist': '再生リスト'
+    },
+    'tw': {
+      //'share':'分享',
+      'info': '資訊',
+      'videos': '影片',
+      'playlist': '播放清單'
+    },
+    'cn': {
+      //'share':'分享',
+      'info': '资讯',
+      'videos': '视频',
+      'playlist': '播放列表'
+    },
+    'du': {
+      //'share':'Teilen',
+      'info': 'Info',
+      'videos': 'Videos',
+      'playlist': 'Playlist'
+    },
+    'fr': {
+      //'share':'Partager',
+      'info': 'Info',
+      'videos': 'Vidéos',
+      'playlist': 'Playlist'
+    },
+    'kr': {
+      //'share':'공유',
+      'info': '정보',
+      'videos': '동영상',
+      'playlist': '재생목록'
+    },
+    'ru': {
+      //'share':'Поделиться',
+      'info': 'Описание',
+      'videos': 'Видео',
+      'playlist': 'Плейлист'
+    }
+  };
+
+  const svgComments = `<path d="M80 27H12A12 12 90 0 0 0 39v42a12 12 90 0 0 12 12h12v20a2 2 90 0 0 3.4 2L47 93h33a12 
+  12 90 0 0 12-12V39a12 12 90 0 0-12-12zM20 47h26a2 2 90 1 1 0 4H20a2 2 90 1 1 0-4zm52 28H20a2 2 90 1 1 0-4h52a2 2 90 
+  1 1 0 4zm0-12H20a2 2 90 1 1 0-4h52a2 2 90 1 1 0 4zm36-58H40a12 12 90 0 0-12 12v6h52c9 0 16 7 16 16v42h0v4l7 7a2 2 90 
+  0 0 3-1V71h2a12 12 90 0 0 12-12V17a12 12 90 0 0-12-12z"/>`.trim();
+
+  const svgVideos = `<path d="M89 10c0-4-3-7-7-7H7c-4 0-7 3-7 7v70c0 4 3 7 7 7h75c4 0 7-3 7-7V10zm-62 2h13v10H27V12zm-9 
+  66H9V68h9v10zm0-56H9V12h9v10zm22 56H27V68h13v10zm-3-25V36c0-2 2-3 4-2l12 8c2 1 2 4 0 5l-12 8c-2 1-4 0-4-2zm25 
+  25H49V68h13v10zm0-56H49V12h13v10zm18 56h-9V68h9v10zm0-56h-9V12h9v10z"/>`.trim();
+
+  const svgInfo = `<path d="M30 0C13.3 0 0 13.3 0 30s13.3 30 30 30 30-13.3 30-30S46.7 0 30 0zm6.2 46.6c-1.5.5-2.6 
+  1-3.6 1.3a10.9 10.9 0 0 1-3.3.5c-1.7 0-3.3-.5-4.3-1.4a4.68 4.68 0 0 1-1.6-3.6c0-.4.2-1 .2-1.5a20.9 20.9 90 0 1 
+  .3-2l2-6.8c.1-.7.3-1.3.4-1.9a8.2 8.2 90 0 0 .3-1.6c0-.8-.3-1.4-.7-1.8s-1-.5-2-.5a4.53 4.53 0 0 0-1.6.3c-.5.2-1 
+  .2-1.3.4l.6-2.1c1.2-.5 2.4-1 3.5-1.3s2.3-.6 3.3-.6c1.9 0 3.3.6 4.3 1.3s1.5 2.1 1.5 3.5c0 .3 0 .9-.1 1.6a10.4 10.4 
+  90 0 1-.4 2.2l-1.9 6.7c-.2.5-.2 1.1-.4 1.8s-.2 1.3-.2 1.6c0 .9.2 1.6.6 1.9s1.1.5 2.1.5a6.1 6.1 90 0 0 1.5-.3 9 9 90 
+  0 0 1.4-.4l-.6 2.2zm-3.8-35.2a1 1 0 010 8.6 1 1 0 010-8.6z"/>`.trim();
+
+  const svgPlayList = `<path d="M0 3h12v2H0zm0 4h12v2H0zm0 4h8v2H0zm16 0V7h-2v4h-4v2h4v4h2v-4h4v-2z"/>`.trim();
+
+  const svgDiag1 = `<svg stroke="currentColor" fill="none"><path d="M8 2h2v2M7 5l3-3m-6 8H2V8m0 2l3-3"/></svg>`;
+  const svgDiag2 = `<svg stroke="currentColor" fill="none"><path d="M7 3v2h2M7 5l3-3M5 9V7H3m-1 3l3-3"/></svg>`;
+
+
+  const getGMT = () => {
+    let m = new Date('2023-01-01T00:00:00Z');
+    return m.getDate() === 1 ? `+${m.getHours()}` : `-${24 - m.getHours()}`;
+  };
+
+  function getWord(tag) {
+    return langWords[pageLang][tag] || langWords['en'][tag] || '';
+  }
+
+  const svgElm = (w, h, vw, vh, p, m) => `<svg${m ? ` class=${m}` : ''} width="${w}" height="${h}" viewBox="0 0 ${vw} ${vh}" preserveAspectRatio="xMidYMid meet">${p}</svg>`
+
+  let hiddenTabsByUserCSS = 0;
+
+  function getTabsHTML() {
+
+    const sTabBtnVideos = `${svgElm(16, 16, 90, 90, svgVideos)}<span>${getWord('videos')}</span>`;
+    const sTabBtnInfo = `${svgElm(16, 16, 60, 60, svgInfo)}<span>${getWord('info')}</span>`;
+    const sTabBtnPlayList = `${svgElm(16, 16, 20, 20, svgPlayList)}<span>${getWord('playlist')}</span>`;
+
+    let str1 = `
+        <paper-ripple class="style-scope yt-icon-button">
+            <div id="background" class="style-scope paper-ripple" style="opacity:0;"></div>
+            <div id="waves" class="style-scope paper-ripple"></div>
+        </paper-ripple>
+        `;
+
+    let str_fbtns = `
+    <div class="font-size-right">
+    <div class="font-size-btn font-size-plus" tyt-di="8rdLQ">
+    <svg width="12" height="12" viewbox="0 0 50 50" preserveAspectRatio="xMidYMid meet" 
+    stroke="currentColor" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-size">
+      <path d="M12 25H38M25 12V38"/>
+    </svg>
+    </div><div class="font-size-btn font-size-minus" tyt-di="8rdLQ">
+    <svg width="12" height="12" viewbox="0 0 50 50" preserveAspectRatio="xMidYMid meet"
+    stroke="currentColor" stroke-width="6" stroke-linecap="round" vector-effect="non-scaling-size">
+      <path d="M12 25h26"/>
+    </svg>
+    </div>
+    </div>
+    `.replace(/[\r\n]+/g, '');
+
+    const str_tabs = [
+      `<a id="tab-btn1" tyt-di="q9Kjc" tyt-tab-content="#tab-info" class="tab-btn${(hiddenTabsByUserCSS & 1) === 1 ? ' tab-btn-hidden' : ''}">${sTabBtnInfo}${str1}${str_fbtns}</a>`,
+      `<a id="tab-btn3" tyt-di="q9Kjc" tyt-tab-content="#tab-comments" class="tab-btn${(hiddenTabsByUserCSS & 2) === 2 ? ' tab-btn-hidden' : ''}">${svgElm(16, 16, 120, 120, svgComments)}<span id="tyt-cm-count"></span>${str1}${str_fbtns}</a>`,
+      `<a id="tab-btn4" tyt-di="q9Kjc" tyt-tab-content="#tab-videos" class="tab-btn${(hiddenTabsByUserCSS & 4) === 4 ? ' tab-btn-hidden' : ''}">${sTabBtnVideos}${str1}${str_fbtns}</a>`,
+      `<a id="tab-btn5" tyt-di="q9Kjc" tyt-tab-content="#tab-list" class="tab-btn tab-btn-hidden">${sTabBtnPlayList}${str1}${str_fbtns}</a>`
+    ].join('');
+
+    let addHTML = `
+        <div id="right-tabs">
+            <tabview-view-pos-thead></tabview-view-pos-thead>
+            <header>
+                <div id="material-tabs">
+                    ${str_tabs}
+                </div>
+            </header>
+            <div class="tab-content">
+                <div id="tab-info" class="tab-content-cld tab-content-hidden" tyt-hidden userscript-scrollbar-render></div>
+                <div id="tab-comments" class="tab-content-cld tab-content-hidden" tyt-hidden userscript-scrollbar-render></div>
+                <div id="tab-videos" class="tab-content-cld tab-content-hidden" tyt-hidden userscript-scrollbar-render></div>
+                <div id="tab-list" class="tab-content-cld tab-content-hidden" tyt-hidden userscript-scrollbar-render></div>
+            </div>
+        </div>
+        `;
+
+    return addHTML;
+
+  }
+
+
+  function getLang() {
+
+    let lang = 'en';
+    let htmlLang = ((document || 0).documentElement || 0).lang || '';
+    switch (htmlLang) {
+      case 'en':
+      case 'en-GB':
+        lang = 'en';
+        break;
+      case 'de':
+      case 'de-DE':
+        lang = 'du';
+        break;
+      case 'fr':
+      case 'fr-CA':
+      case 'fr-FR':
+        lang = 'fr';
+        break;
+      case 'zh-Hant':
+      case 'zh-Hant-HK':
+      case 'zh-Hant-TW':
+        lang = 'tw';
+        break;
+      case 'zh-Hans':
+      case 'zh-Hans-CN':
+        lang = 'cn';
+        break;
+      case 'ja':
+      case 'ja-JP':
+        lang = 'jp';
+        break;
+      case 'ko':
+      case 'ko-KR':
+        lang = 'kr';
+        break;
+      case 'ru':
+      case 'ru-RU':
+        lang = 'ru';
+        break;
+      default:
+        lang = 'en';
+    }
+
+    return lang;
+
+  }
+
+  function getLangForPage() {
+
+    let lang = getLang();
+
+    if (langWords[lang]) pageLang = lang; else pageLang = 'en';
+
+  }
+
+  /** @type {Object.<string, number>} */
+  const _locks = {}
+
+  const lockGet = new Proxy(_locks,
+    {
+      get(target, prop) {
+        return (target[prop] || 0);
+      },
+      set(target, prop, val) {
+        return true;
+      }
+    }
+  );
+
+  const lockSet = new Proxy(_locks,
+    {
+      get(target, prop) {
+        if (target[prop] > 1e9) target[prop] = 9;
+        return (target[prop] = (target[prop] || 0) + 1);
+      },
+      set(target, prop, val) {
+        return true;
+      }
+    }
+  );
+
+  const videosElementProvidedPromise = new PromiseExternal();
+  const navigateFinishedPromise = new PromiseExternal();
+
+  let isRightTabsInserted = false;
+  const rightTabsProvidedPromise = new PromiseExternal();
+
+  const infoExpanderElementProvidedPromise = new PromiseExternal();
+
+
+  const funcCanCollapse = function (s) {
+    if (!s) return;
+    this.canToggle = this.shouldUseNumberOfLines && (this.alwaysCollapsed || this.collapsed)
+      ? this.alwaysToggleable || this.$.content.offsetHeight < this.$.content.scrollHeight
+      : this.alwaysToggleable || this.$.content.scrollHeight > this.collapsedHeight
+  };
+
+  const aoChat = new MutationObserver(() => {
+    const chatElm = elements.chat;
+    const ytdFlexyElm = elements.flexy;
+    // console.log(1882, chatElm, ytdFlexyElm)
+    if (chatElm && ytdFlexyElm) {
+      if (chatElm.hasAttribute000('collapsed')) {
+
+        ytdFlexyElm.setAttribute111('tyt-chat-collapsed', '')
+      } else {
+
+        ytdFlexyElm.removeAttribute000('tyt-chat-collapsed')
+      }
+
+      ytdFlexyElm.setAttribute111('tyt-chat', chatElm.hasAttribute000('collapsed') ? '-' : '+');
+
+    }
+  });
+
+  const aoComment = new MutationObserver((mutations) => {
+    const commentsArea = elements.comments;
+    const ytdFlexyElm = elements.flexy;
+
+    //tyt-comments-video-id //tyt-comments-data-status // hidden
+    if (!commentsArea) return;
+    let bfHidden = false;
+    let bfCommentsVideoId = false;
+    let bfCommentDisabled = false;
+    for (const mutation of mutations) {
+      if (mutation.attributeName === 'hidden' && mutation.target === commentsArea) {
+        bfHidden = true;
+      } else if (mutation.attributeName === 'tyt-comments-video-id' && mutation.target === commentsArea) {
+        bfCommentsVideoId = true;
+      } else if (mutation.attributeName === 'tyt-comments-data-status' && mutation.target === commentsArea) {
+        bfCommentDisabled = true;
+      }
+    }
+
+    if (bfHidden) {
+
+      if (!commentsArea.hasAttribute000('hidden')) {
+        Promise.resolve(commentsArea).then(eventMap['settingCommentsVideoId']).catch(console.warn);
+      }
+      removeKeepCommentsScroller();
+    }
+
+    if ((bfHidden || bfCommentsVideoId || bfCommentDisabled) && ytdFlexyElm) {
+
+      const commentsDataStatus = +commentsArea.getAttribute000('tyt-comments-data-status');
+      if (commentsDataStatus === 2) {
+        ytdFlexyElm.setAttribute111('tyt-comment-disabled', '')
+      } else if (commentsDataStatus === 1) {
+        ytdFlexyElm.removeAttribute000('tyt-comment-disabled')
+      }
+
+      Promise.resolve().then(eventMap['checkCommentsShouldBeHidden']).catch(console.warn);
+
+
+      if (isRightTabsInserted && commentsArea.closest('#tab-comments')) {
+        if (commentsArea.closest('[hidden]')) {
+          // document.querySelector('#tab-comments').classList.add('tab-content-hidden')
+          document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden')
+        } else {
+          // document.querySelector('#tab-comments').classList.remove('tab-content-hidden')
+          document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden')
+        }
+      }
+
+    }
+
+
+  });
+
+  const ioComment = new IntersectionObserver((entries) => {
+
+    for (const entry of entries) {
+      const target = entry.target;
+      if (entry.isIntersecting && target instanceof HTMLElement && typeof target.calculateCanCollapse === 'function') {
+        removeKeepCommentsScrollerFlg = 0;
+        target.calculateCanCollapse(true);
+        target.setAttribute111('io-intersected', '');
+        const ytdFlexyElm = elements.flexy;
+        if (ytdFlexyElm && !ytdFlexyElm.hasAttribute000('keep-comments-scroller')) {
+          ytdFlexyElm.setAttribute111('keep-comments-scroller', '');
+        }
+      } else if (target.hasAttribute000('io-intersected')) {
+
+        target.removeAttribute000('io-intersected');
+      }
+    }
+
+  }, {
+    threshold: [0],
+    rootMargin: "32px" // enlarging viewport for getting intersection earlier
+  });
+
+  let lastRoRightTabsWidth = 0;
+  const roRightTabs = new ResizeObserver((entries) => {
+    const entry = entries[entries.length - 1];
+    const width = Math.round(entry.borderBoxSize.inlineSize);
+    if (lastRoRightTabsWidth !== width) {
+      lastRoRightTabsWidth = width;
+      for (const element of document.querySelectorAll('[io-intersected]')) {
+        const cnt = insp(element);
+        if (element instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
+          try {
+            cnt.calculateCanCollapse(true);
+          } catch (e) { }
+        }
+      }
+      for (const element of document.querySelectorAll('ytd-video-description-infocards-section-renderer, yt-chip-cloud-renderer')) {
+        const cnt = insp(element);
+        if (element instanceof HTMLElement && typeof cnt.notifyResize === 'function') {
+          try {
+            cnt.notifyResize();
+          } catch (e) { }
+        }
+      }
+    }
+    console.log('resize')
+  });
+
+  const switchToTab = (activeLink) => {
+
+    if (typeof activeLink === 'string') {
+      activeLink = document.querySelector(`a[tyt-tab-content="${activeLink}"]`) || null;
+    }
+
+    const ytdFlexyElm = elements.flexy;
+
+
+    const links = document.querySelectorAll('#material-tabs a[tyt-tab-content]');
+
+    //console.log(701, activeLink)
+
+    for (const link of links) {
+      const content = document.querySelector(link.getAttribute000('tyt-tab-content'));
+      if (link && content) {
+        if (link !== activeLink) {
+          link.classList.remove("active");
+          content.classList.add("tab-content-hidden");
+          if (!content.hasAttribute000("tyt-hidden")) {
+            content.setAttribute111("tyt-hidden", ""); // for https://greasyfork.org/en/scripts/456108
+          }
+        } else {
+          link.classList.add("active");
+          if (content.hasAttribute000("tyt-hidden")) {
+            content.removeAttribute000("tyt-hidden"); // for https://greasyfork.org/en/scripts/456108
+          }
+          content.classList.remove("tab-content-hidden");
+        }
+      }
+    }
+
+    const switchingTo = activeLink ? activeLink.getAttribute000('tyt-tab-content') : '';
+    if (switchingTo) {
+      lastTab = lastPanel = switchingTo
+    }
+
+    ytdFlexyElm.setAttribute111('tyt-tab', switchingTo);
+
+  }
+
+  let tabAStatus = 0;
+  const calculationFn = (r = 0, flag) => {
+    const ytdFlexyElm = elements.flexy;
+    if (!ytdFlexyElm) return r;
+    if (flag & 1) {
+      r |= 1;
+      if (!ytdFlexyElm.hasAttribute000('theater')) r -= 1;
+    }
+    if (flag & 2) {
+      r |= 2;
+      if (!ytdFlexyElm.getAttribute000('tyt-tab')) r -= 2;
+    }
+    if (flag & 4) {
+      r |= 4;
+      if (ytdFlexyElm.getAttribute000('tyt-chat') !== '-') r -= 4;
+    }
+    if (flag & 8) {
+      r |= 8;
+      if (ytdFlexyElm.getAttribute000('tyt-chat') !== '+') r -= 8;
+    }
+    if (flag & 16) {
+      r |= 16;
+      if (!ytdFlexyElm.hasAttribute000('is-two-columns_')) r -= 16;
+    }
+    if (flag & 32) {
+      r |= 32;
+      if (!ytdFlexyElm.hasAttribute000('tyt-egm-panel_')) r -= 32;
+    }
+    if(flag & 64){
+
+      r |= 64;
+      if(!document.fullscreenElement) r -= 64;
+    }
+    return r;
+
+  }
+
+  function isTheater() {
+    const ytdFlexyElm = elements.flexy;
+    return (ytdFlexyElm && ytdFlexyElm.hasAttribute000('theater'))
+  }
+
+  function ytBtnSetTheater() {
+    if (!isTheater()) {
+      const sizeBtn = document.querySelector('ytd-watch-flexy #ytd-player button.ytp-size-button')
+      if (sizeBtn) sizeBtn.click();
+    }
+  }
+
+  function ytBtnCancelTheater() {
+    if (isTheater()) {
+      const sizeBtn = document.querySelector('ytd-watch-flexy #ytd-player button.ytp-size-button')
+      if (sizeBtn) sizeBtn.click();
+    }
+  }
+
+
+  function ytBtnExpandChat() {
+    let button = document.querySelector('ytd-live-chat-frame#chat[collapsed] > .ytd-live-chat-frame#show-hide-button')
+    if (button) {
+      button =
+        button.querySelector000('div.yt-spec-touch-feedback-shape') ||
+        button.querySelector000('ytd-toggle-button-renderer');
+      if (button) button.click();
+    }
+  }
+
+  function ytBtnCollapseChat() {
+    let button = document.querySelector('ytd-live-chat-frame#chat:not([collapsed]) > .ytd-live-chat-frame#show-hide-button')
+    if (button) {
+      button =
+        button.querySelector000('div.yt-spec-touch-feedback-shape') ||
+        button.querySelector000('ytd-toggle-button-renderer');
+      if (button) button.click();
+    }
+  }
+
+  function ytBtnEgmPanelCore(arr) {
+
+    if (!arr) return
+    if (!('length' in arr)) arr = [arr]
+
+    const ytdFlexyElm = elements.flexy;
+    if (!ytdFlexyElm) return;
+
+    let actions = []
+
+    for (const entry of arr) {
+
+      if (!entry) continue;
+
+      let panelId = entry.panelId
+
+      let toHide = entry.toHide
+      let toShow = entry.toShow
+
+      if (toHide === true && !toShow) {
+
+        actions.push({
+          "changeEngagementPanelVisibilityAction": {
+            "targetId": panelId,
+            "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
+          }
+        })
+
+      } else if (toShow === true && !toHide) {
+
+        actions.push({
+          "showEngagementPanelEndpoint": {
+            "panelIdentifier": panelId
+          }
+        })
+
+      }
+
+      if (actions.length > 0) {
+        const cnt = insp(ytdFlexyElm);
+
+        cnt.resolveCommand(
+          {
+            "signalServiceEndpoint": {
+              "signal": "CLIENT_SIGNAL",
+              "actions": actions
+            }
+          },
+
+          {},
+          false);
+      }
+      actions = null;
+
+    }
+  }
+
+  /*
+  function ytBtnCloseEngagementPanel( s) {
+    //ePanel.setAttribute('visibility',"ENGAGEMENT_PANEL_VISIBILITY_HIDDEN");
+ 
+    let panelId = s.getAttribute('target-id')
+    scriptletDeferred.debounce(() => {
+      document.dispatchEvent(new CustomEvent('tyt-engagement-panel-visibility-change', {
+        detail: {
+          panelId,
+          toHide: true
+        }
+      }))
+    })
+ 
+  }
+  
+  function ytBtnCloseEngagementPanels() {
+    if (isEngagementPanelExpanded()) {
+      for (const s of document.querySelectorAll(
+        `ytd-watch-flexy[flexy][tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
+      )) {
+        if (s.getAttribute('visibility') == "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") ytBtnCloseEngagementPanel(s);
+      }
+    }
+  }
+  */
+
+
+  function ytBtnCloseEngagementPanels() {
+
+    const actions = [];
+    for (const panelElm of document.querySelectorAll(
+      `ytd-watch-flexy[flexy][tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
+    )) {
+      if (panelElm.getAttribute('visibility') == "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED" && !panelElm.closest('[hidden]')) {
+        actions.push({
+          panelId: panelElm.getAttribute000('target-id'),
+          toHide: true
+        });
+      }
+    }
+    ytBtnEgmPanelCore(actions);
+  }
+
+  const updateChatLocation498 = function () {
+    /*
+ 
+            updateChatLocation: function() {
+            if (this.is !== "ytd-watch-grid" && y("web_watch_theater_chat")) {
+                var a = T(this.hostElement).querySelector("#chat-container")
+                  , b = this.theater && (!this.fullscreen || y("web_watch_fullscreen_panels"));
+                this.watchWhileWindowSizeSufficient && this.liveChatPresentAndExpanded && b ? y("web_watch_theater_chat_beside_player") ? (b = T(this.hostElement).querySelector("#panels-full-bleed-container"),
+                (a == null ? void 0 : a.parentElement) !== b && b.append(a),
+                this.panelsBesidePlayer = !0) : y("web_watch_theater_fixed_chat") && (b = T(this.hostElement).querySelector("#columns"),
+                (a == null ? void 0 : a.parentElement) !== b && b.append(a),
+                this.fixedPanels = !0) : (y("web_watch_theater_chat_beside_player") ? this.panelsBesidePlayer = !1 : y("web_watch_theater_fixed_chat") && (this.fixedPanels = !1),
+                b = T(this.hostElement).querySelector("#playlist"),
+                a && b ? Fh(a, b) : Gm(new zk("Missing element when updating chat location",{
+                    "chatContainer defined": !!a,
+                    "playlist defined": !!b
+                })));
+                this.updatePageMediaQueries();
+                this.schedulePlayerSizeUpdate_()
+            }
+        },
+ 
+        */
+
+    console.log('updateChatLocation498')
+    if (this.is !== "ytd-watch-grid") {
+      this.updatePageMediaQueries();
+      this.schedulePlayerSizeUpdate_()
+    }
+
+  }
+
+  const mirrorNodeWS = new WeakMap();
+
+  /*
+    const infoFix = () => {
+      const infoExpander = elements.infoExpander;
+      const ytdFlexyElm = elements.flexy;
+      if (!infoExpander || !ytdFlexyElm) return;
+      console.log(386, infoExpander, infoExpander.matches('#tab-info > [class]'))
+      if (!infoExpander.matches('#tab-info > [class]')) return;
+      // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"], ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer')].filter(elm=>{
+      //   if(elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
+      //    return true;
+      // });
+  
+  
+  
+      const requireElements = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"] > *, ytd-watch-metadata.ytd-watch-flexy #extra-content > *')].filter(elm => {
+        return typeof elm.is == 'string'
+      }).map(elm => {
+        const is = elm.is;
+        while (elm instanceof HTMLElement) {
+          const q = [...elm.querySelectorAll(is)].filter(e => insp(e).data);
+          if (q.length >= 1) return q[0];
+          elm = elm.parentNode;
+        }
+      }).filter(elm => !!elm && typeof elm.is === 'string');
+      console.log(requireElements)
+  
+      const source = requireElements.map(entry=>({
+        data: insp(entry).data,
+        tag: insp(entry).is,
+        elm: entry
+      }))
+  
+      if (!document.querySelector('noscript#aythl')) {
+        const noscript = document.createElement('noscript')
+        noscript.id = 'aythl';
+        ytdFlexyElm.insertBefore000(noscript, ytdFlexyElm.firstChild);
+  
+      }
+      const noscript = document.querySelector('noscript#aythl');
+  
+      const clones = new Set();
+      for (const {data, tag, elm} of source) {
+  
+        // const cloneNode = document.createElement(tag);
+        let cloneNode = elm.cloneNode(true);
+        // noscript.appendChild(cloneNode);
+        // insp(cloneNode).data = null;
+        insp(cloneNode).data = data;
+        source.clone = cloneNode;
+        clones.add(cloneNode);
+      }
+  
+  
+      // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"]')].filter(elm => {
+      //   if (elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
+      //   return true;
+      // });
+  
+      // let arr = [];
+      // for(const elm of elms){
+      //   if(elm.hasAttribute('slot')) arr.push(...elm.childNodes);
+      //   else arr.push(elm);
+      // }
+      // arr = arr.filter(e=>e && e.nodeType === 1);
+      // console.log(386,arr)
+  
+      // const clones = arr.map(e=>e.cloneNode(true));
+  
+      // for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling) node.remove();
+  
+      // infoExpander.parentNode.assignChildern111(null, infoExpander, [...clones]);
+      let removal = [];
+      for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling)removal.push(node);
+      for(const node of removal) node.remove();
+      for(const node of clones) infoExpander.parentNode.appendChild(node);
+      
+  
+      for (const {data, tag, elm, clone} of source) {
+  
+        insp(clone).data = null;
+        insp(clone).data = data;
+      }
+  
+      // console.log(infoExpander.parentNode.childNodes)
+    }
+  */
+
+  const dummyNode = document.createElement('noscript');
+
+  // const __j4838__ = Symbol();
+  const __j4836__ = Symbol();
+  const __j5744__ = Symbol(); // original element
+  const __j5733__ = Symbol(); // __lastChanged__
+
+  const monitorDataChangedByDOMMutation = async function (mutations) {
+
+    const nodeWR = this;
+    const node = kRef(nodeWR);
+    if (!node) return;
+
+    const cnt = insp(node);
+    const __lastChanged__ = cnt[__j5733__];
+
+
+    const val = cnt.data ? (cnt.data[__j4836__] || 1) : 0;
+
+    if (__lastChanged__ !== val) {
+      cnt[__j5733__] = val > 0 ? (cnt.data[__j4836__] = Date.now()) : 0;
+
+      await Promise.resolve(); // required for making sufficient delay for data rendering
+      attributeInc(node, 'tyt-data-change-counter'); // next macro task
+
+    }
+
+  }
+
+  const moChangeReflection = function (mutations) {
+
+    const nodeWR = this;
+    const node = kRef(nodeWR);
+    if (!node) return;
+    const originElement = kRef(node[__j5744__] || null) || null;
+    if (!originElement) return;
+
+    const cnt = insp(node);
+    const oriCnt = insp(originElement);
+
+    if (mutations) {
+
+      let bfDataChangeCounter = false;
+      for (const mutation of mutations) {
+
+        if (mutation.attributeName === 'tyt-clone-refresh-count' && mutation.target === originElement) {
+          bfDataChangeCounter = true;
+        } else if (mutation.attributeName === 'tyt-data-change-counter' && mutation.target === originElement) {
+          bfDataChangeCounter = true;
+        }
+      }
+      if (bfDataChangeCounter && oriCnt.data) {
+        node.replaceWith(dummyNode);
+        cnt.data = Object.assign({}, oriCnt.data);
+        dummyNode.replaceWith(node);
+      }
+
+    }
+  }
+
+  /*
+  const moChangeReflection = async function (mutations) {
+
+    const nodeWR = this;
+    const node = kRef(nodeWR);
+    if (!node) return;
+    const originElement = kRef(node[__j5744__] || null) || null;
+    if (!originElement) return;
+
+    const cnt = insp(node);
+    const oriCnt = insp(originElement);
+
+    if(mutations){
+
+      let bfDataChangeCounter = false;
+      for (const mutation of mutations) {
+        if (mutation.attributeName === 'tyt-data-change-counter' && mutation.target === originElement) {
+          bfDataChangeCounter = true;
+        }
+      }
+      if(bfDataChangeCounter && oriCnt.data){
+        node.replaceWith(dummyNode);
+        cnt.data = Object.assign({}, oriCnt.data);
+        dummyNode.replaceWith(node);
+      }
+
+    } 
+
+    // console.log(8348, originElement)
+
+    if (cnt.isAttached === false) {
+      // do nothing
+      // don't call infoFix() as it shall be only called in ytd-expander::attached and yt-navigate-finish
+    } else if (oriCnt.isAttached === false && cnt.isAttached === true) {
+      if (node.isConnected && node.parentNode instanceof HTMLElement) {
+        node.parentNode.removeChild(node);
+      } else {
+        node.remove();
+      }
+      if (oriCnt.data !== null) {
+        cnt.data = null;
+      }
+    } else if (oriCnt.isAttached === true && cnt.isAttached === true) {
+      if (!oriCnt.data) {
+        if(cnt.data){
+          cnt.data = null;
+        }
+      } else if (!cnt.data || oriCnt.data[__j4838__] !== cnt.data[__j4838__]) {
+        oriCnt.data[__j4838__] = Date.now();
+        await Promise.resolve(); // required for making sufficient delay for data rendering
+        attributeInc(originElement, 'tyt-data-change-counter'); // next macro task
+      }
+    }
+
+  };
+  */
+
+  const attributeInc = (elm, prop) => {
+    let v = (+elm.getAttribute000(prop) || 0) + 1;
+    if (v > 1e9) v = 9;
+    elm.setAttribute000(prop, v);
+    return v;
+  }
+
+
+
+  const infoFix = () => {
+    const infoExpander = elements.infoExpander;
+    const ytdFlexyElm = elements.flexy;
+    if (!infoExpander || !ytdFlexyElm) return;
+    // console.log(386, infoExpander, infoExpander.matches('#tab-info > [class]'))
+    if (!infoExpander.matches('#tab-info > [class]')) return;
+    // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"], ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer')].filter(elm=>{
+    //   if(elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
+    //    return true;
+    // });
+
+
+
+    const requireElements = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"] > *, ytd-watch-metadata.ytd-watch-flexy #extra-content > *')].filter(elm => {
+      return typeof elm.is == 'string'
+    }).map(elm => {
+      const is = elm.is;
+      while (elm instanceof HTMLElement) {
+        const q = [...elm.querySelectorAll(is)].filter(e => insp(e).data);
+        if (q.length >= 1) return q[0];
+        elm = elm.parentNode;
+      }
+    }).filter(elm => !!elm && typeof elm.is === 'string');
+    // console.log(9162, requireElements)
+
+    const source = requireElements.map(entry => ({
+      data: insp(entry).data,
+      tag: insp(entry).is,
+      elm: entry
+    }));
+
+    if (!document.querySelector('noscript#aythl')) {
+      const noscript = document.createElement('noscript')
+      noscript.id = 'aythl';
+      ytdFlexyElm.insertBefore000(noscript, ytdFlexyElm.firstChild);
+
+    }
+    const noscript = document.querySelector('noscript#aythl');
+
+
+    let requiredUpdate = false;
+    const mirrorElmSet = new Set();
+    const targetParent = infoExpander.parentNode;
+    for (const { data, tag: tag, elm: s } of source) {
+
+      let mirrorNode = mirrorNodeWS.get(s)
+      mirrorNode = mirrorNode ? kRef(mirrorNode) : mirrorNode;
+      if (!mirrorNode) {
+        const cnt = insp(s);
+        const cProto = cnt.constructor.prototype;
+
+        const element = document.createElement(tag);
+        noscript.appendChild(element); // appendChild to trigger .attached()
+        mirrorNode = element
+        mirrorNode[__j5744__] = mWeakRef(s);
+
+        const nodeWR = mWeakRef(mirrorNode);
+        // if(!(insp(s)._dataChanged438)){
+        //   insp(s)._dataChanged438 = async function(){
+
+        //     await Promise.resolve(); // required for making sufficient delay for data rendering
+        //     attributeInc(originElement, 'tyt-data-change-counter'); // next macro task
+        //     moChangeReflection.call(nodeWR);
+        //   }
+        // }
+
+
+
+
+        new MutationObserver(moChangeReflection.bind(nodeWR)).observe(s, { attributes: true, attributeFilter: ['tyt-clone-refresh-count', 'tyt-data-change-counter'] });
+
+
+        s.jy8432 = 1;
+        if (!(cProto instanceof Node) && !cProto._dataChanged496 && typeof cProto._createPropertyObserver === 'function') {
+
+
+          cProto._dataChanged496 = function () {
+            const cnt = this;
+            const node = cnt.hostElement || cnt;
+            if (node.jy8432) {
+
+              console.log('hello _dataChanged496', this.is);
+              // await Promise.resolve(); // required for making sufficient delay for data rendering
+              attributeInc(node, 'tyt-data-change-counter'); // next macro task
+            }
+
+
+          }
+
+          cProto._createPropertyObserver('data', '_dataChanged496', undefined)
+
+        } else if (!(cProto instanceof Node) && !cProto._dataChanged496 && cProto.useSignals === true && insp(s).signalProxy) {
+
+          const dataSignal = cnt?.signalProxy?.signalCache?.data;
+          if (dataSignal && typeof dataSignal.setWithPath === 'function' && !dataSignal.setWithPath573 && !dataSignal.controller573) {
+            dataSignal.controller573 = mWeakRef(cnt);
+            dataSignal.setWithPath573 = dataSignal.setWithPath;
+            dataSignal.setWithPath = function () {
+              const cnt = (kRef(this.controller573 || null) || null);
+              cnt && typeof cnt._dataChanged496k === 'function' && Promise.resolve(cnt).then(cnt._dataChanged496k);
+              return this.setWithPath573(...arguments)
+            }
+            cProto._dataChanged496 = function () {
+              const cnt = this;
+              const node = cnt.hostElement || cnt;
+              if (node.jy8432) {
+                console.log('hello _dataChanged496', this.is);
+                // await Promise.resolve(); // required for making sufficient delay for data rendering
+                attributeInc(node, 'tyt-data-change-counter'); // next macro task
+              }
+            }
+            cProto._dataChanged496k = (cnt) => cnt._dataChanged496();
+
+          }
+
+        }
+
+
+        if (!cProto._dataChanged496) {
+
+
+          new MutationObserver(monitorDataChangedByDOMMutation.bind(mirrorNode[__j5744__])).observe(s, { attributes: true, childList: true, subtree: true });
+
+        }
+
+
+        // new MutationObserver(moChangeReflection.bind(nodeWR)).observe(s, {attributes: true, childList: true, subtree: true});
+
+        mirrorNodeWS.set(s, nodeWR);
+        requiredUpdate = true;
+      } else {
+
+        if (mirrorNode.parentNode !== targetParent) {
+          requiredUpdate = true;
+        }
+      }
+      if (!requiredUpdate) {
+        const cloneNodeCnt = insp(mirrorNode);
+        if (cloneNodeCnt.data !== data) {
+          // if(mirrorNode.parentNode !== noscript){
+          //   noscript.appendChild(mirrorNode);
+          // }
+          // mirrorNode.replaceWith(dummyNode);
+          // cloneNodeCnt.data = data;
+          // dummyNode.replaceWith(mirrorNode);
+          requiredUpdate = true;
+        }
+      }
+
+
+      mirrorElmSet.add(mirrorNode);
+      source.mirrored = mirrorNode;
+
+    }
+
+    const mirroElmArr = [...mirrorElmSet];
+    mirrorElmSet.clear();
+
+
+    if (!requiredUpdate) {
+      // DOM Tree Check
+      let e = 0;
+      for (let n = targetParent.firstChild; n instanceof Node; n = n.nextSibling) {
+        let target = e === 0 ? infoExpander : mirroElmArr[e - 1];
+        e++;
+        if (n !== target) {
+          // target can be undefined if index overflow
+          requiredUpdate = true;
+          break;
+        }
+      }
+      if (!requiredUpdate && e !== mirroElmArr.length + 1) requiredUpdate = true;
+    }
+
+    if (requiredUpdate) {
+      targetParent.assignChildern111(null, infoExpander, mirroElmArr);
+      for (const mirrorElm of mirroElmArr) {
+        // trigger data assignment and record refresh count by manual update
+        const j = attributeInc(mirrorElm, 'tyt-clone-refresh-count');
+        const oriElm = kRef(mirrorElm[__j5744__] || null) || null;
+        if (oriElm) {
+          oriElm.setAttribute111('tyt-clone-refresh-count', j)
+        }
+      }
+    }
+
+    mirroElmArr.length = 0;
+    source.length = 0;
+
+  }
+
+
+  let lastPanel = '';
+  let lastTab = '';
+  let removeKeepCommentsScrollerFlg = 0;
+  // let fixInitialTabState = 0;
+
+  const aoEgmPanels = new MutationObserver(() => {
+    updateEgmPanels();
+  });
+
+  const removeKeepCommentsScroller = async () => {
+    removeKeepCommentsScrollerFlg = 1;
+    await Promise.resolve();
+    if (removeKeepCommentsScrollerFlg !== 1) return;
+    const ytdFlexyFlm = elements.flexy;
+    if (ytdFlexyFlm) {
+      ytdFlexyFlm.removeAttribute000('keep-comments-scroller');
+    }
+  }
+
+  const updateEgmPanels = async () => {
+    const lockId = lockSet['updateEgmPanels-lockId'];
+    await navigateFinishedPromise.then();
+    if (lockId !== lockGet['updateEgmPanels-lockId']) return;
+    const ytdFlexyElm = elements.flexy;
+    if (!ytdFlexyElm) return;
+    let newVisiblePanels = [];
+    let newHiddenPanels = [];
+    let allVisiblePanels = [];
+    for (const panelElm of document.querySelectorAll('[tyt-egm-panel][target-id][visibility]')) {
+      const visibility = panelElm.getAttribute000('visibility');
+
+      if (visibility === 'ENGAGEMENT_PANEL_VISIBILITY_HIDDEN' || panelElm.closest('[hidden]')) {
+        if (panelElm.hasAttribute000('tyt-visible-at')) {
+          panelElm.removeAttribute000('tyt-visible-at');
+          newHiddenPanels.push(panelElm);
+        }
+
+      } else if (visibility === 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED' && !panelElm.closest('[hidden]')) {
+        let visibleAt = panelElm.getAttribute000('tyt-visible-at');
+        if (!visibleAt) {
+          panelElm.setAttribute111('tyt-visible-at', Date.now());
+          newVisiblePanels.push(panelElm);
+        }
+        allVisiblePanels.push(panelElm);
+      }
+    }
+    if (newVisiblePanels.length >= 1 && allVisiblePanels.length >= 2) {
+      const targetVisible = newVisiblePanels[newVisiblePanels.length - 1];
+
+      const actions = [];
+      for (const panelElm of allVisiblePanels) {
+        if (panelElm === targetVisible) continue;
+        actions.push({
+          panelId: panelElm.getAttribute000('target-id'),
+          toHide: true
+        });
+      }
+
+      if (actions.length >= 1) {
+        ytBtnEgmPanelCore(actions);
+      }
+
+    }
+    if (allVisiblePanels.length >= 1) {
+      ytdFlexyElm.setAttribute111('tyt-egm-panel_', '');
+    } else {
+      ytdFlexyElm.removeAttribute000('tyt-egm-panel_');
+    }
+    newVisiblePanels.length = 0;
+    newVisiblePanels = null;
+    newHiddenPanels.length = 0;
+    newHiddenPanels = null;
+    allVisiblePanels.length = 0;
+    allVisiblePanels = null;
+  }
+
+  const checkElementExist = (css, exclude) => {
+    for (const p of document.querySelectorAll(css)) {
+      if (!p.closest(exclude)) return true;
+    }
+    return false;
+  }
+
+  const {handleNavigateFactory} = (() => {
+
+
+    let isLoadStartListened = false;
+
+    function findLcComment(lc) {
+      if (arguments.length === 1) {
+
+        let element = document.querySelector(`#tab-comments ytd-comments ytd-comment-renderer #header-author a[href*="lc=${lc}"]`);
+        if (element) {
+          let commentRendererElm = closestFromAnchor.call(element, 'ytd-comment-renderer');
+          if (commentRendererElm && lc) {
+            return {
+              lc,
+              commentRendererElm
+            }
+          }
+        }
+      } else if (arguments.length === 0) {
+
+        let element = document.querySelector(`#tab-comments ytd-comments ytd-comment-renderer > #linked-comment-badge span:not(:empty)`);
+        if (element) {
+          let commentRendererElm = closestFromAnchor.call(element, 'ytd-comment-renderer');
+          if (commentRendererElm) {
+
+            let header = _querySelector.call(commentRendererElm, '#header-author');
+            if (header) {
+
+              let anchor = _querySelector.call(header, 'a[href*="lc="]');
+              if (anchor) {
+                let href = (anchor.getAttribute('href') || '');
+                let m = /[&?]lc=([\w_.-]+)/.exec(href); // dot = sub-comment
+                if (m) {
+                  lc = m[1];
+                }
+              }
+            }
+
+          }
+          if (commentRendererElm && lc) {
+            return {
+              lc,
+              commentRendererElm
+            }
+          }
+        }
+      }
+
+      return null;
+
+    }
+
+
+    function lcSwapFuncA(targetLcId, currentLcId) {
+
+
+      let done = 0;
+      try {
+        // console.log(currentLcId, targetLcId)
+
+        let r1 = findLcComment(currentLcId).commentRendererElm;
+        let r2 = findLcComment(targetLcId).commentRendererElm;
+
+
+        if (typeof insp(r1).data.linkedCommentBadge === 'object' && typeof insp(r2).data.linkedCommentBadge === 'undefined') {
+
+          let p = Object.assign({}, insp(r1).data.linkedCommentBadge)
+
+          if (((p || 0).metadataBadgeRenderer || 0).trackingParams) {
+            delete p.metadataBadgeRenderer.trackingParams;
+          }
+
+          const v1 = findContentsRenderer(r1)
+          const v2 = findContentsRenderer(r2)
+
+
+          if (v1.parent === v2.parent && (v2.parent.nodeName === 'YTD-COMMENTS' || v2.parent.nodeName === 'YTD-ITEM-SECTION-RENDERER')) {
+
+          } else {
+            // currently not supported
+            return false;
+          }
+
+
+
+          if (v2.index >= 0) {
+            if (v2.parent.nodeName === 'YTD-COMMENT-REPLIES-RENDERER') {
+
+
+              if (lcSwapFuncB(targetLcId, currentLcId, p)) {
+                done = 1;
+              }
+
+              done = 1;
+            } else {
+              const v2pCnt = insp(v2.parent);
+              const v2Conents = (v2pCnt.data || 0).contents || 0;
+              if (!v2Conents) console.warn('v2Conents is not found');
+
+              v2pCnt.data = Object.assign({}, v2pCnt.data, { contents: [].concat([v2Conents[v2.index]], v2Conents.slice(0, v2.index), v2Conents.slice(v2.index + 1)) });
+
+              if (lcSwapFuncB(targetLcId, currentLcId, p)) {
+                done = 1;
+              }
+            }
+
+
+          }
+
+
+
+        }
+
+
+
+      } catch (e) {
+        console.warn(e)
+      }
+      return done === 1;
+    }
+
+
+    function lcSwapFuncB(targetLcId, currentLcId, _p) {
+
+      let done = 0;
+      try {
+
+        let r1 = findLcComment(currentLcId).commentRendererElm;
+        let r1cnt = insp(r1);
+        let r2 = findLcComment(targetLcId).commentRendererElm;
+        let r2cnt = insp(r2);
+
+        const r1d = r1cnt.data;
+        let p = Object.assign({}, _p)
+        r1d.linkedCommentBadge = null;
+        delete r1d.linkedCommentBadge;
+
+        let q = Object.assign({}, r1d);
+        q.linkedCommentBadge = null;
+        delete q.linkedCommentBadge;
+
+        r1cnt.data = Object.assign({}, q);
+        r2cnt.data = Object.assign({}, r2cnt.data, { linkedCommentBadge: p });
+
+        done = 1;
+
+      } catch (e) {
+        console.warn(e)
+      }
+      return done === 1;
+    }
+
+    const loadStartFx = async (evt) => {
+
+      let media = (evt || 0).target || 0;
+      if (media.nodeName === 'VIDEO' || media.nodeName === 'AUDIO') { }
+      else return;
+
+      const newMedia = media;
+
+      const media1 = getMediaElement(0); // document.querySelector('#movie_player video[src]');
+      const media2 = getMediaElements(2); // document.querySelectorAll('ytd-browse[role="main"] video[src]');
+
+      if (media1 !== null && media2.length > 0) {
+        if (newMedia !== media1 && media1.paused === false) {
+          if (isVideoPlaying(media1)) {
+            Promise.resolve(newMedia).then(video => video.paused === false && video.pause());
+          }
+        } else if (newMedia === media1) {
+          for (const s of media2) {
+            if (s.paused === false) {
+              Promise.resolve(s).then(s => s.paused === false && s.pause())
+              break;
+            }
+          }
+        } else {
+          Promise.resolve(media1).then(video1 => video1.paused === false && video1.pause());
+        }
+      }
+
+    }
+
+    const getBrowsableEndPoint = (req) => {
+
+      let valid = false;
+      let endpoint = req ? req.command : null;
+      if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.watchEndpoint) {
+        let videoId = endpoint.watchEndpoint.videoId;
+        let url = endpoint.commandMetadata.webCommandMetadata.url;
+
+        if (typeof videoId === 'string' && typeof url === 'string' && url.indexOf('lc=') > 0) {
+
+          let m = /^\/watch\?v=([\w_-]+)&lc=([\w_.-]+)$/.exec(url); // dot = sub-comment
+          if (m && m[1] === videoId) {
+
+
+            /*
+            {
+              "style": "BADGE_STYLE_TYPE_SIMPLE",
+              "label": "注目のコメント",
+              "trackingParams": "XXXXXX"
+          }
+            */
+
+            let targetLc = findLcComment(m[2])
+            let currentLc = targetLc ? findLcComment() : null;
+
+            if (targetLc && currentLc) {
+
+
+              let done = targetLc.lc === currentLc.lc ? 1 : lcSwapFuncA(targetLc.lc, currentLc.lc) ? 1 : 0
+
+              if (done === 1) {
+
+                common.xReplaceState(history.state, url);
+                return;
+              }
+            }
+          }
+
+        }
+
+      }
+
+      /*
+          
+          {
+            "type": 0,
+            "command": endpoint,
+            "form": {
+              "tempData": {},
+              "reload": false
+            }
+          }
+
+      */
+
+
+      if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
+
+        if (endpoint.browseEndpoint && endpoint.browseEndpoint.browseId === "FEwhat_to_watch") {
+          // valid = false;
+          const playerMedia = common.getMediaElement(1);
+          if (playerMedia && playerMedia.paused === false) valid = true; // home page
+        } else if (endpoint.commandMetadata && endpoint.commandMetadata.webCommandMetadata) {
+
+          let meta = endpoint.commandMetadata.webCommandMetadata
+          if (meta && /*meta.apiUrl &&*/ meta.url && meta.webPageType) {
+            valid = true;
+          }
+
+        }
+      }
+
+      if (!valid) endpoint = null;
+
+      return endpoint;
+    }
+
+    const conditionFulfillment = (req) => {
+      const endpoint = req ? req.command : null;
+      if (!endpoint) return;
+
+      if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.watchEndpoint) {
+      } else if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
+      } else {
+        return false;
+      }
+
+
+      if (!document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]')) return false;
+
+
+      /*
+        // user would like to switch page immediately without playing the video;
+        // attribute appear after playing video for more than 2s
+        if (!document.head.dataset.viTime) return false;
+        else {
+          let currentVideo = common.getMediaElement(0);
+          if (currentVideo && currentVideo.readyState > currentVideo.HAVE_CURRENT_DATA && currentVideo.currentTime > 2.2 && currentVideo.duration - 2.2 < currentVideo.currentTime) {
+            // disable miniview browsing if the media is near to the end
+            return false;
+          }
+        }
+      */
+ 
+
+      if (pageType !== "watch") return false;
+
+
+      if (!checkElementExist('ytd-watch-flexy #player button.ytp-miniplayer-button.ytp-button', '[hidden]')) {
+        return false;
+      }
+
+      return true;
+    }
+
+    const handleNavigateFactory = (handleNavigate) => {
+
+      return function (req) {
+
+        const $this = this;
+        const $arguments = arguments;
+
+        let endpoint = null;
+        
+
+        if (conditionFulfillment(req)) {
+
+
+          endpoint = getBrowsableEndPoint(req);
+
+        }
+
+
+        if (!endpoint || !document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]')) return handleNavigate.apply($this, $arguments);
+
+        // console.log('tabview-script-handleNavigate')
+
+        const ytdAppElm = document.querySelector('ytd-app');
+        const ytdAppCnt = insp(ytdAppElm);
+
+        let object = null;
+        try {
+          object = ytdAppCnt.data.response.currentVideoEndpoint.watchEndpoint || null;
+        } catch (e) {
+          object = null;
+        }
+
+        if (typeof object !== 'object') object = null;
+
+        const once = { once: true }; // browsers supporting async function can also use once option.
+
+        if (object !== null && !('playlistId' in object)) {
+
+          let wObject = mWeakRef(object)
+
+          const N = 3;
+
+          let count = 0;
+
+          /*
+            
+            rcb(b) => a = playlistId = undefinded
+            
+            var scb = function(a, b, c, d) {
+                    a.isInitialized() && (B("kevlar_miniplayer_navigate_to_shorts_killswitch") ? c || d ? ("watch" !== Xu(b) && "shorts" !== Xu(b) && os(a.miniplayerEl, "yt-cache-miniplayer-page-action", [b]),
+                    qs(a.miniplayerEl, "yt-deactivate-miniplayer-action")) : "watch" === Xu(b) && rcb(b) && (qt.getInstance().playlistWatchPageActivation = !0,
+                    a.activateMiniplayer(b)) : c ? ("watch" !== Xu(b) && os(a.miniplayerEl, "yt-cache-miniplayer-page-action", [b]),
+                    qs(a.miniplayerEl, "yt-deactivate-miniplayer-action")) : d ? qs(a.miniplayerEl, "yt-pause-miniplayer-action") : "watch" === Xu(b) && rcb(b) && (qt.getInstance().playlistWatchPageActivation = !0,
+                    a.activateMiniplayer(b)))
+                };
+  
+          */
+
+          Object.defineProperty((kRef(wObject) || {}), 'playlistId', {
+            get() {
+              count++;
+              if (count === N) {
+                delete this.playlistId;
+              }
+              return '*';
+            },
+            set(value) {
+              delete this.playlistId; // remove property definition
+              this.playlistId = value; // assign as normal property
+            },
+            enumerable: false,
+            configurable: true
+          });
+
+          let playlistClearout = null;
+
+          let timeoutid = 0;
+          Promise.race([
+            new Promise(r => {
+              timeoutid = setTimeout(r, 4000)
+            }),
+            new Promise(r => {
+              playlistClearout = () => {
+                if (timeoutid > 0) {
+                  clearTimeout(timeoutid);
+                  timeoutid = 0;
+                }
+                r();
+              }
+              document.addEventListener('yt-page-type-changed', playlistClearout, once);
+            })
+          ]).then(() => {
+
+            if (timeoutid !== 0) {
+              playlistClearout && document.removeEventListener('yt-page-type-changed', playlistClearout, once);
+              timeoutid = 0;
+            }
+            playlistClearout = null;
+            count = N - 1;
+            let object = kRef(wObject)
+            wObject = null;
+            return object ? object.playlistId : null;
+          })
+
+        }
+
+        if (!isLoadStartListened) {
+          isLoadStartListened = true;
+          document.addEventListener('loadstart', loadStartFx, true)
+        }
+
+        handleNavigate.apply($this, $arguments);
+
+      }
+
+    };
+
+    return { handleNavigateFactory };
+
+
+  })();
+
+  const common = (() => {
+
+
+    let mediaModeLock = 0;
+    const _getMediaElement = (i) => {
+      if (mediaModeLock === 0) {
+        let e = document.querySelector('.video-stream.html5-main-video') || document.querySelector('#movie_player video, #movie_player audio') || document.querySelector('body video[src], body audio[src]');
+        if (e) {
+          if (e.nodeName === 'VIDEO') mediaModeLock = 1;
+          else if (e.nodeName === 'AUDIO') mediaModeLock = 2;
+        }
+      }
+      if (!mediaModeLock) return null;
+      if (mediaModeLock === 1) {
+        switch (i) {
+          case 1:
+            return ('ytd-player#ytd-player video[src]');
+          case 2:
+            return ('ytd-browse[role="main"] video[src]');
+          case 0:
+          default:
+            return ('#movie_player video[src]');
+        }
+      } else if (mediaModeLock === 2) {
+        switch (i) {
+          case 1:
+            return ('ytd-player#ytd-player audio.video-stream.html5-main-video[src]');
+          case 2:
+            return ('ytd-browse[role="main"] audio.video-stream.html5-main-video[src]');
+          case 0:
+          default:
+            return ('#movie_player audio.video-stream.html5-main-video[src]');
+        }
+      }
+      return null;
+    }
+
+    return {
+
+
+      xReplaceState(s, u) {
+        try {
+          history.replaceState(s, '', u);
+        } catch (e) {
+          // in case error occurs if replaceState is replaced by any external script / extension
+        }
+        if (s.endpoint) {
+          try {
+            const ytdAppElm = document.querySelector('ytd-app');
+            const ytdAppCnt = insp(ytdAppElm);
+            ytdAppCnt.replaceState(s.endpoint, '', u)
+          } catch (e) {
+          }
+        }
+      },
+      getMediaElement(i) {
+        let s = _getMediaElement(i) || '';
+        if (s) return document.querySelector(s);
+        return null;
+      },
+      getMediaElements(i) {
+        let s = _getMediaElement(i) || '';
+        if (s) return document.querySelectorAll(s);
+        return [];
+      }
+    };
+  })();
+
+
+  const plugin = {
+    'minibrowser': {
+      enabled: false,
+      enable() {
+
+        if (plugin.minibrowser.enabled) return;
+
+        const isPassiveArgSupport = (typeof IntersectionObserver === 'function');
+        // https://caniuse.com/?search=observer
+        // https://caniuse.com/?search=addEventListener%20passive
+
+        if (!isPassiveArgSupport) return;
+
+        plugin.minibrowser.enabled = true;
+
+        const ytdAppElm = document.querySelector('ytd-app');
+        const ytdAppCnt = insp(ytdAppElm);
+
+
+        if (!ytdAppCnt) return;
+
+        const cProto = ytdAppCnt.constructor.prototype;
+
+        if (!cProto.handleNavigate) return;
+
+        if (cProto.handleNavigate.__ma355__) return;
+
+        cProto.handleNavigate = handleNavigateFactory(cProto.handleNavigate);
+
+        cProto.handleNavigate.__ma355__ = 1;
+      }
+    }
+  }
+
+  const eventMap = {
+
+    'ceHack': () => {
+      mLoaded.flag |= 2;
+      document.documentElement.setAttribute111('tabview-loaded', mLoaded.makeString());
+
+      retrieveCE('ytd-watch-flexy').then(eventMap['ytd-watch-flexy::defined']).catch(console.warn);
+      retrieveCE('ytd-expander').then(eventMap['ytd-expander::defined']).catch(console.warn);
+      retrieveCE('ytd-watch-next-secondary-results-renderer').then(eventMap['ytd-watch-next-secondary-results-renderer::defined']).catch(console.warn);
+      retrieveCE('ytd-comments-header-renderer').then(eventMap['ytd-comments-header-renderer::defined']).catch(console.warn);
+      retrieveCE('ytd-live-chat-frame').then(eventMap['ytd-live-chat-frame::defined']).catch(console.warn);
+      retrieveCE('ytd-comments').then(eventMap['ytd-comments::defined']).catch(console.warn);
+      retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer:defined']).catch(console.warn);
+
+    },
+
+
+    'ytd-watch-flexy::defined': (cProto) => {
+
+      if (!cProto.updateChatLocation498 && typeof cProto.updateChatLocation === 'function' && cProto.updateChatLocation.length === 0) {
+        cProto.updateChatLocation498 = cProto.updateChatLocation;
+        cProto.updateChatLocation = updateChatLocation498;
+      }
+
+    },
+
+
+
+    'ytd-watch-next-secondary-results-renderer::defined': (cProto) => {
+      // if (!cProto.attached498 && typeof cProto.attached === 'function') {
+      //   cProto.attached498 = cProto.attached;
+      //   cProto.attached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::attached']).catch(console.warn);
+      //     return this.attached498();
+      //   }
+      // }
+      // if (!cProto.detached498 && typeof cProto.detached === 'function') {
+      //   cProto.detached498 = cProto.detached;
+      //   cProto.detached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::detached']).catch(console.warn);
+      //     return this.detached498();
+      //   }
+      // }
+    },
+
+    'ytd-watch-next-secondary-results-renderer::connectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      if (hostElement instanceof HTMLElement && hostElement.matches('#columns #related ytd-watch-next-secondary-results-renderer') && !hostElement.matches('#right-tabs ytd-watch-next-secondary-results-renderer, [hidden] ytd-watch-next-secondary-results-renderer')) {
+        elements.related = hostElement.closest('#related');
+        hostElement.setAttribute111('tyt-videos-list', '');
+      }
+      console.log('ytd-watch-next-secondary-results-renderer::attached', hostElement);
+    },
+
+    'ytd-watch-next-secondary-results-renderer::disconnectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+      if (hostElement.hasAttribute000('tyt-videos-list')) {
+        elements.related = null;
+        hostElement.removeAttribute000('tyt-videos-list');
+      }
+      console.log('ytd-watch-next-secondary-results-renderer::detached', hostElement);
+    },
+
+
+    'settingCommentsVideoId': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      const cnt = insp(hostElement);
+      const commentsArea = elements.comments;
+      if (commentsArea !== hostElement || hostElement.isConnected !== true || cnt.isAttached !== true || !cnt.data || cnt.hidden !== false) return;
+      const ytdFlexyElm = elements.flexy;
+      const ytdFlexyCnt = ytdFlexyElm ? insp(ytdFlexyElm) : null;
+      if (ytdFlexyCnt && ytdFlexyCnt.videoId) {
+        hostElement.setAttribute111('tyt-comments-video-id', ytdFlexyCnt.videoId)
+      } else {
+        hostElement.removeAttribute000('tyt-comments-video-id')
+      }
+    },
+    'checkCommentsShouldBeHidden': () => {
+
+      // commentsArea's attribute: tyt-comments-video-id
+      // ytdFlexyElm's attribute: video-id
+
+
+      const commentsArea = elements.comments;
+      const ytdFlexyElm = elements.flexy;
+      if (commentsArea && ytdFlexyElm && !commentsArea.hasAttribute000('hidden')) {
+        const ytdFlexyCnt = insp(ytdFlexyElm);
+        if (typeof ytdFlexyCnt.videoId === 'string') {
+          const commentsVideoId = commentsArea.getAttribute('tyt-comments-video-id');
+          if (commentsVideoId && commentsVideoId !== ytdFlexyCnt.videoId) {
+            commentsArea.setAttribute111('hidden', '');
+            // removeKeepCommentsScroller();
+          }
+        }
+      }
+
+    },
+    'ytd-comments::defined': (cProto) => {
+
+      if (!cProto.attached498 && typeof cProto.attached === 'function') {
+        cProto.attached498 = cProto.attached;
+        cProto.attached = function () {
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::attached']).catch(console.warn);
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
+          return this.attached498();
+        }
+      }
+      if (!cProto.detached498 && typeof cProto.detached === 'function') {
+        cProto.detached498 = cProto.detached;
+        cProto.detached = function () {
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::detached']).catch(console.warn);
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
+          return this.detached498();
+        }
+      }
+
+      cProto._createPropertyObserver('data', '_dataChanged498', undefined)
+      cProto._dataChanged498 = function () {
+        console.log('_dataChanged498', this.hostElement)
+        Promise.resolve(this.hostElement).then(eventMap['ytd-comments::_dataChanged498']).catch(console.warn);
+      }
+
+
+      // if (!cProto.dataChanged498_ && typeof cProto.dataChanged_ === 'function') {
+      //   cProto.dataChanged498_ = cProto.dataChanged_;
+      //   cProto.dataChanged_ = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
+      //     return this.dataChanged498_();
+      //   }
+      // }
+    },
+
+    'ytd-comments::_dataChanged498': (hostElement) => {
+      // console.log(18984, hostElement.hasAttribute('tyt-comments-area'))
+      if (!hostElement.hasAttribute000('tyt-comments-area')) return;
+      let commentsDataStatus = 0;
+      const cnt = insp(hostElement);
+      const data = cnt ? cnt.data : null
+      const contents = data ? data.contents : null;
+      if (data) {
+        if (contents && contents.length === 1 && contents[0].messageRenderer) {
+          commentsDataStatus = 2;
+        }
+        if (contents && contents.length > 1 && contents[0].commentThreadRenderer) {
+          commentsDataStatus = 1;
+        }
+      }
+      if (commentsDataStatus) {
+        hostElement.setAttribute111('tyt-comments-data-status', commentsDataStatus);
+        // ytdFlexyElm.setAttribute111('tyt-comment-disabled', '')
+      } else {
+        // ytdFlexyElm.removeAttribute000('tyt-comment-disabled')
+        hostElement.removeAttribute000('tyt-comments-data-status')
+      }
+      Promise.resolve(hostElement).then(eventMap['settingCommentsVideoId']).catch(console.warn);
+    },
+
+    'ytd-comments::connectedCallback': async (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      if (!hostElement || hostElement.id !== 'comments') return;
+      // if (!hostElement || hostElement.closest('[hidden]')) return;
+      elements.comments = hostElement;
+      console.log('ytd-comments::attached')
+      Promise.resolve(hostElement).then(eventMap['settingCommentsVideoId']).catch(console.warn);
+      if (isRightTabsInserted) {
+
+        if (elements.comments !== hostElement) return;
+        if (hostElement.isConnected === false) return;
+        // if(!elements.comments || elements.comments.isConnected === false) return;
+        if (hostElement && !hostElement.closest('#right-tabs')) {
+          document.querySelector('#tab-comments').assignChildern111(null, hostElement, null);
+        } else {
+
+          if (elements.comments && elements.comments.closest('#tab-comments') && !elements.comments.closest('[hidden]')) {
+            document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden');
+          } else {
+            document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
+          }
+
+          //   document.querySelector('#tab-comments').classList.remove('tab-content-hidden')
+          //   document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden')
+
+          removeKeepCommentsScroller();
+
+        }
+
+
+
+
+      }
+
+      aoComment.observe(hostElement, { attributes: true });
+      hostElement.setAttribute111('tyt-comments-area', '');
+
+
+    },
+    'ytd-comments::disconnectedCallback': (hostElement) => {
+      // console.log(858, hostElement)
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+
+      if (hostElement.hasAttribute000('tyt-comments-area')) {
+        foComments.disconnect();
+        foComments.takeRecords();
+        hostElement.removeAttribute000('tyt-comments-area');
+        // document.querySelector('#tab-comments').classList.add('tab-content-hidden')
+        // document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden')
+
+
+        aoComment.disconnect();
+        aoComment.takeRecords();
+        elements.comments = null;
+
+        document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
+
+        removeKeepCommentsScroller();
+      }
+
+
+    },
+
+
+    'ytd-comments-header-renderer::defined': (cProto) => {
+
+      if (!cProto.attached498 && typeof cProto.attached === 'function') {
+        cProto.attached498 = cProto.attached;
+        cProto.attached = function () {
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::attached']).catch(console.warn);
+          Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::dataChanged']).catch(console.warn); // force dataChanged on attached
+          return this.attached498();
+        }
+      }
+      if (!cProto.detached498 && typeof cProto.detached === 'function') {
+        cProto.detached498 = cProto.detached;
+        cProto.detached = function () {
+          // Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::detached']).catch(console.warn);
+          return this.detached498();
+        }
+      }
+
+      if (!cProto.dataChanged498 && typeof cProto.dataChanged === 'function') {
+        cProto.dataChanged498 = cProto.dataChanged;
+        cProto.dataChanged = function () {
+          Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::dataChanged']).catch(console.warn);
+          return this.dataChanged498();
+        }
+      }
+
+    },
+
+
+    'ytd-comments-header-renderer::connectedCallback': (hostElement) => {
+
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      if (!hostElement || !hostElement.classList.contains('ytd-item-section-renderer')) return;
+      console.log(12991, 'ytd-comments-header-renderer::connectedCallback')
+      const targetElement = document.querySelector('[tyt-comments-area] ytd-comments-header-renderer');
+      if (hostElement === targetElement) {
+        hostElement.setAttribute111('tyt-comments-header-field', '');
+      } else {
+        const parentNode = hostElement.parentNode;
+        if (parentNode instanceof HTMLElement && parentNode.querySelector('[tyt-comments-header-field]')) {
+          hostElement.setAttribute111('tyt-comments-header-field', '')
+        }
+      }
+
+    },
+
+    'ytd-comments-header-renderer::disconnectedCallback': (hostElement) => {
+
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+      console.log(12992, 'ytd-comments-header-renderer::disconnectedCallback')
+      if (hostElement.hasAttribute000('field-of-cm-count')) {
+
+        const cmCount = document.querySelector('#tyt-cm-count');
+        if (cmCount) {
+          cmCount.textContent = '';
+          hostElement.removeAttribute000('field-of-cm-count');
+
+        }
+      }
+      if (hostElement.hasAttribute000('tyt-comments-header-field')) {
+        hostElement.removeAttribute000('tyt-comments-header-field');
+      }
+
+    },
+
+    'ytd-comments-header-renderer::dataChanged': (hostElement) => {
+
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+
+      const ytdFlexyElm = elements.flexy;
+
+      let b = false;
+      const cnt = insp(hostElement);
+      if (cnt && hostElement.closest('#tab-comments') && document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement) {
+        b = true;
+      } else if (hostElement instanceof HTMLElement && hostElement.parentNode instanceof HTMLElement && hostElement.parentNode.querySelector('[tyt-comments-header-field]')) {
+        b = true;
+      }
+      if (b) {
+        hostElement.setAttribute111('tyt-comments-header-field', '')
+        ytdFlexyElm && ytdFlexyElm.removeAttribute000('tyt-comment-disabled');
+      }
+
+      // console.log(1841, [...document.querySelectorAll('#tab-comments ytd-comments-header-renderer')], document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement, !!hostElement?.parentNode?.querySelector('[tyt-comments-header-field]'))
+
+      if (hostElement.hasAttribute000('tyt-comments-header-field') && hostElement.isConnected === true) {
+
+        // console.log(1842, [...document.querySelectorAll('#tab-comments ytd-comments-header-renderer')], document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement, !!hostElement?.parentNode?.querySelector('[tyt-comments-header-field]'))
+
+        const data = cnt.data;
+        let ez = '';
+        if (data.commentsCount && data.commentsCount.runs && data.commentsCount.runs.length >= 1) {
+          let max = -1;
+          const z = data.commentsCount.runs.map(e => {
+            let c = e.text.replace(/\D+/g, '').length;
+            if (c > max) max = c;
+            return [e.text, c];
+          }).filter(a => a[1] === max);
+          if (z.length >= 1) {
+            ez = z[0][0];
+          }
+        } else if (data.countText && data.countText.runs && data.countText.runs.length >= 1) {
+          let max = -1;
+          const z = data.countText.runs.map(e => {
+            let c = e.text.replace(/\D+/g, '').length;
+            if (c > max) max = c;
+            return [e.text, c];
+          }).filter(a => a[1] === max);
+          if (z.length >= 1) {
+            ez = z[0][0];
+          }
+        }
+        const cmCount = document.querySelector('#tyt-cm-count');
+        if (ez) {
+          hostElement.setAttribute111('field-of-cm-count', '');
+          cmCount && (cmCount.textContent = ez.trim());
+        } else {
+          hostElement.removeAttribute000('field-of-cm-count');
+          cmCount && (cmCount.textContent = '');
+          console.warn('no text for #tyt-cm-count')
+        }
+      }
+    },
+
+    'ytd-expander::defined': (cProto) => {
+      // if (!cProto.attached498 && typeof cProto.attached === 'function') {
+      //   cProto.attached498 = cProto.attached;
+      //   cProto.attached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-expander::attached']).catch(console.warn);
+      //     return this.attached498();
+      //   }
+      // }
+      // if (!cProto.detached498 && typeof cProto.detached === 'function') {
+      //   cProto.detached498 = cProto.detached;
+      //   cProto.detached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-expander::detached']).catch(console.warn);
+      //     return this.detached498();
+      //   }
+      // }
+      if (!cProto.calculateCanCollapse498 && typeof cProto.calculateCanCollapse === 'function') {
+        cProto.calculateCanCollapse498 = cProto.calculateCanCollapse;
+        cProto.calculateCanCollapse = funcCanCollapse;
+
+
+      }
+    },
+
+    'ytd-expander::connectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      // console.log(4959, hostElement)
+
+      if (hostElement instanceof HTMLElement && hostElement.matches('[tyt-comments-block] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
+
+        hostElement.setAttribute111('tyt-content-comment-entry', '')
+        ioComment.observe(hostElement);
+      } else if (hostElement instanceof HTMLElement && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
+        //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
+
+        elements.infoExpander = hostElement
+        // console.log(1299, hostElement.parentNode, isRightTabsInserted)
+        if (isRightTabsInserted) {
+          const infoExpander = elements.infoExpander;
+          if (infoExpander && !infoExpander.closest('#right-tabs')) {
+            document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+          } else {
+
+            if (document.querySelector('[tyt-tab-content="#tab-info"]')) {
+              if (elements.infoExpander && elements.infoExpander.closest('#tab-info')) {
+                document.querySelector('[tyt-tab-content="#tab-info"]').classList.remove('tab-btn-hidden');
+              } else {
+                document.querySelector('[tyt-tab-content="#tab-info"]').classList.add('tab-btn-hidden');
+              }
+            }
+            if (infoExpander) infoFix();
+          }
+          infoExpanderElementProvidedPromise.resolve();
+        }
+        hostElement.setAttribute111('tyt-main-info', '');
+      }
+      // console.log('ytd-expander::attached', hostElement);
+
+
+
+    },
+
+    'ytd-expander::disconnectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+      // console.log(5992, hostElement)
+      if (hostElement.hasAttribute000('tyt-content-comment-entry')) {
+        ioComment.unobserve(hostElement);
+        hostElement.removeAttribute000('tyt-content-comment-entry')
+      } else if (hostElement.hasAttribute000('tyt-main-info')) {
+        elements.infoExpander = null;
+        hostElement.removeAttribute000('tyt-main-info');
+      }
+      // console.log('ytd-expander::detached', hostElement);
+    },
+
+
+    'ytd-live-chat-frame::defined': (cProto) => {
+
+      // if (!cProto.attached498 && typeof cProto.attached === 'function') {
+      //   cProto.attached498 = cProto.attached;
+      //   cProto.attached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
+      //     return this.attached498();
+      //   }
+      // }
+      // if (!cProto.detached498 && typeof cProto.detached === 'function') {
+      //   cProto.detached498 = cProto.detached;
+      //   cProto.detached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
+      //     return this.detached498();
+      //   }
+      // }
+
+      if (typeof cProto.urlChanged === 'function' && !cProto.urlChanged66 && !cProto.urlChangedAsync12 && cProto.urlChanged.length === 0) {
+        cProto.urlChanged66 = cProto.urlChanged;
+        let ath = 0;
+        cProto.urlChangedAsync12 = async function () {
+          if (ath > 1e9) ath = 9;
+          const t = ++ath;
+          const chatframe = this.chatframe || (this.$ || 0).chatframe || 0;
+          if (chatframe) {
+            if (chatframe.contentDocument === null) await Promise.resolve();
+            if (t !== ath) return;
+            try {
+              let win = chatframe.contentWindow;
+              win && await (new Promise(r => win.setTimeout(r)).catch(console.warn));
+              win = null;
+            } catch (e) { }
+            win = null;
+            if (t !== ath) return;
+          }
+          this.urlChanged66();
+        }
+        cProto.urlChanged = function () {
+          this.urlChangedAsync12();
+        }
+      }
+    },
+
+    'ytd-live-chat-frame::connectedCallback': (hostElement) => {
+
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      if (!hostElement || hostElement.id !== 'chat') return;
+      console.log('ytd-live-chat-frame::attached')
+      const chatElem = document.querySelector('#columns.style-scope.ytd-watch-flexy ytd-live-chat-frame#chat');
+      if (chatElem === hostElement) {
+        elements.chat = chatElem;
+        aoChat.observe(hostElement, { attributes: true });
+        hostElement.setAttribute111('tyt-active-chat-frame', '')
+      }
+    },
+
+    'ytd-live-chat-frame::disconnectedCallback': (hostElement) => {
+
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+      console.log('ytd-live-chat-frame::detached')
+      if (hostElement.hasAttribute000('tyt-active-chat-frame')) {
+        aoChat.disconnect();
+        aoChat.takeRecords();
+        hostElement.removeAttribute000('tyt-active-chat-frame');
+        elements.chat = null;
+
+        const ytdFlexyElm = elements.flexy;
+        if (ytdFlexyElm) {
+          ytdFlexyElm.removeAttribute000('tyt-chat-collapsed')
+          ytdFlexyElm.setAttribute111('tyt-chat', '');
+        }
+      }
+
+    },
+
+    'ytd-engagement-panel-section-list-renderer:defined': (cProto) => {
+
+      // if (!cProto.attached498 && typeof cProto.attached === 'function') {
+      //   cProto.attached498 = cProto.attached;
+      //   cProto.attached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::attached']).catch(console.warn);
+      //     return this.attached498();
+      //   }
+      // }
+      // if (!cProto.detached498 && typeof cProto.detached === 'function') {
+      //   cProto.detached498 = cProto.detached;
+      //   cProto.detached = function () {
+      //     Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::detached']).catch(console.warn);
+      //     return this.detached498();
+      //   }
+      // }
+    },
+
+    'ytd-engagement-panel-section-list-renderer::connectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== true) return;
+      if (hostElement.__connectedFlg__ !== 4) return;
+      hostElement.__connectedFlg__ = 5;
+      // console.log('ytd-engagement-panel-section-list-renderer::attached', hostElement)
+      if (hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer[target-id][visibility]')) {
+        hostElement.setAttribute111('tyt-egm-panel', '');
+        updateEgmPanels();
+        aoEgmPanels.observe(hostElement, { attributes: true, attributeFilter: ['visibility', 'hidden'] });
+      }
+    },
+
+    'ytd-engagement-panel-section-list-renderer::disconnectedCallback': (hostElement) => {
+      if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+      if (hostElement.isConnected !== false) return;
+      if (hostElement.__connectedFlg__ !== 8) return;
+      hostElement.__connectedFlg__ = 9;
+      hostElement.removeAttribute('tyt-egm-panel', '');
+      updateEgmPanels();
+    },
+
+    '_yt_playerProvided': () => {
+      mLoaded.flag |= 4;
+      document.documentElement.setAttribute111('tabview-loaded', mLoaded.makeString());
+    },
+    'relatedElementProvided': (target) => {
+      if (target.closest('[hidden]')) return;
+      elements.related = target;
+      console.log('relatedElementProvided')
+      videosElementProvidedPromise.resolve();
+    },
+    'onceInfoExpanderElementProvidedPromised': () => {
+      const ytdFlexyElm = elements.flexy;
+      if (ytdFlexyElm) {
+        ytdFlexyElm.setAttribute111('hide-default-text-inline-expander', '');
+      }
+    },
+
+    'refreshSecondaryInner': () => {
+
+      /*
+ 
+      ytd-watch-flexy:not([panels-beside-player]):not([fixed-panels]) #panels-full-bleed-container.ytd-watch-flexy{
+          display: none;}
+ 
+#player-full-bleed-container.ytd-watch-flexy{
+    position: relative;
+    flex: 1;}
+ 
+      */
+
+      const ytdFlexyElm = elements.flexy;
+      // if(ytdFlexyElm && ytdFlexyElm.matches('ytd-watch-flexy[fixed-panels][theater]')){
+      //   // ytdFlexyElm.fixedPanels = true;
+      //   ytdFlexyElm.removeAttribute000('fixed-panels');
+      // }
+
+      if (ytdFlexyElm && ytdFlexyElm.matches('ytd-watch-flexy[theater][flexy][full-bleed-player]:not([full-bleed-no-max-width-columns])')) {
+        // ytdFlexyElm.fullBleedNoMaxWidthColumns = true;
+        ytdFlexyElm.setAttribute111('full-bleed-no-max-width-columns', '');
+      }
+
+      const related = elements.related;
+      if (related && related.isConnected && !related.closest('#right-tabs #tab-videos')) {
+        document.querySelector('#tab-videos').assignChildern111(null, related, null);
+      }
+      const infoExpander = elements.infoExpander;
+      if (infoExpander && infoExpander.isConnected && !infoExpander.closest('#right-tabs #tab-info')) {
+        document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+      } else {
+        if (infoExpander) infoFix();
+      }
+
+      const commentsArea = elements.comments;
+      if (commentsArea && commentsArea.isConnected && !commentsArea.closest('#right-tabs #tab-comments')) {
+        document.querySelector('#tab-comments').assignChildern111(null, commentsArea, null);
+      } else {
+        if (commentsArea) removeKeepCommentsScroller();
+      }
+
+
+
+      const chatElem = document.querySelector('#columns.style-scope.ytd-watch-flexy ytd-live-chat-frame#chat');
+      const chatCnt = chatElem ? insp(chatElem) : null;
+      const chatContainer = chatElem ? (chatElem.closest('#chat-container') || chatElem) : null;
+      if (chatContainer) {
+
+        chatContainer.setAttribute111('tyt-chat-container', '')
+      }
+
+
+      const secondaryWrapper = document.querySelector('secondary-wrapper');
+      const secondaryInner = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy');
+      // console.log(3838, !!chatContainer, !!(secondaryWrapper && secondaryInner), secondaryInner?.firstChild, secondaryInner?.lastChild , secondaryWrapper?.parentNode === secondaryInner)
+      if (secondaryWrapper && secondaryInner && secondaryWrapper.parentNode === secondaryInner && (secondaryInner.firstChild !== secondaryInner.lastChild || (chatContainer && !chatContainer.closest('secondary-wrapper')))) {
+        console.log(38381)
+        let w = [];
+        let w2 = [];
+        for (let node = secondaryInner.firstChild; node instanceof Node; node = node.nextSibling) {
+          if (node === chatContainer && chatContainer) {
+
+          } else if (node === secondaryWrapper) {
+
+            for (let node2 = secondaryWrapper.firstChild; node2 instanceof Node; node2 = node2.nextSibling) {
+              if (node2 === chatContainer && chatContainer) {
+              } else {
+                if (node2.id === 'right-tabs' && chatContainer) {
+                  w2.push(chatContainer);
+                }
+                w2.push(node2);
+              }
+            }
+          } else {
+            w.push(node);
+          }
+        }
+        secondaryWrapper.replaceChildren000(...w, ...w2);
+        // if(chatCnt && typeof chatCnt.urlChanged === 'function'){
+        //   setTimeout(()=>chatCnt.urlChanged, 100);
+        // }
+      }
+
+
+    },
+
+    'yt-navigate-finish': (evt) => {
+
+      const ytdAppElm = document.querySelector('ytd-page-manager#page-manager.style-scope.ytd-app');
+      const ytdAppCnt = insp(ytdAppElm);
+      pageType = ytdAppCnt ? (ytdAppCnt.data || 0).page : null;
+
+      if (!document.querySelector('ytd-watch-flexy #player')) return;
+      console.log('yt-navigate-finish')
+      const flexyArr = [...document.querySelectorAll('ytd-watch-flexy')].filter(e => !e.closest('[hidden]') && e.querySelector('#player'));
+      if (flexyArr.length === 1) {
+        // const lockId = lockSet['yt-navigate-finish-videos'];
+        elements.flexy = flexyArr[0];
+        if (isRightTabsInserted) {
+          Promise.resolve().then(eventMap['refreshSecondaryInner']).catch(console.warn);
+          removeKeepCommentsScroller();
+        } else {
+          navigateFinishedPromise.resolve();
+          plugin.minibrowser.enable();
+        }
+      }
+    },
+
+    'onceInsertRightTabs': () => {
+
+
+      // if(lockId !== lockGet['yt-navigate-finish-videos']) return;
+      const related = elements.related;
+      let rightTabs = document.querySelector('#right-tabs');
+      if (!document.querySelector('#right-tabs') && related) {
+        getLangForPage();
+        let docTmp = document.createElement('template');
+        docTmp.innerHTML = getTabsHTML();
+        let newElm = docTmp.content.firstElementChild;
+        if (newElm !== null) {
+          related.parentNode.insertBefore000(newElm, related);
+        }
+        rightTabs = newElm;
+        rightTabs.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
+
+        const secondaryWrapper = document.createElement('secondary-wrapper');
+        const secondaryInner = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy');
+        secondaryWrapper.replaceChildren000(...secondaryInner.childNodes);
+        secondaryInner.insertBefore000(secondaryWrapper, secondaryInner.firstChild);
+
+        rightTabs.querySelector('#material-tabs').addEventListener('click', eventMap['tabs-btn-click'], true)
+
+        if (!rightTabs.closest('secondary-wrapper')) secondaryWrapper.appendChild000(rightTabs);
+
+      }
+      if (rightTabs) {
+        isRightTabsInserted = true;
+        const ioTabBtns = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            const rect = entry.boundingClientRect;
+            entry.target.classList.toggle('tab-btn-visible', rect.width && rect.height)
+          }
+        }, { rootMargin: '0px' });
+        for (const btn of document.querySelectorAll('.tab-btn[tyt-tab-content]')) {
+          ioTabBtns.observe(btn);
+        }
+        if (!related.closest('#right-tabs')) {
+          document.querySelector('#tab-videos').assignChildern111(null, related, null);
+        }
+        const infoExpander = elements.infoExpander;
+        if (infoExpander && !infoExpander.closest('#right-tabs')) {
+          document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+        }
+        const commentsArea = elements.comments;
+        if (commentsArea && !commentsArea.closest('#right-tabs')) {
+          document.querySelector('#tab-comments').assignChildern111(null, commentsArea, null);
+        }
+        rightTabsProvidedPromise.resolve();
+        roRightTabs.disconnect();
+        roRightTabs.observe(rightTabs);
+        const ytdFlexyElm = elements.flexy;
+        const ao = new MutationObserver(eventMap['aoFlexyFn']);
+        ao.observe(ytdFlexyElm, { attributes: true });
+        Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
+        
+        delayPn(1).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
+      }
+
+    },
+
+    'aoFlexyFn': () => {
+
+
+      Promise.resolve().then(eventMap['checkCommentsShouldBeHidden']).catch(console.warn);
+
+      Promise.resolve().then(eventMap['refreshSecondaryInner']).catch(console.warn);
+
+      Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
+
+    },
+
+    'tabsStatusCorrection': (lockId) => {
+      if (lockId !== lockGet['tabsStatusCorrectionLock']) return;
+      const ytdFlexyElm = elements.flexy;
+      if (!ytdFlexyElm) return;
+      const p = tabAStatus;
+      const q = calculationFn(p, 3 | 4 | 8 | 16 | 32 | 64);
+
+      if (p !== q) {
+        console.log(388, p, q)
+        let actioned = false;
+        if ((p & 8) === 0 && (q & 8) === 8) {
+          lastPanel = 'chat'
+        }
+        tabAStatus = q;
+
+        if ((p & 16) === 16 & (q & 16) === 0) {
+          Promise.resolve().then(() => {
+            for (const continuation of document.querySelectorAll('#tab-videos ytd-watch-next-secondary-results-renderer ytd-continuation-item-renderer')) {
+              if (continuation.closest('[hidden]')) continue;
+              const cnt = insp(continuation);
+              if (typeof cnt.showButton === 'boolean') {
+                if (cnt.showButton === false) continue;
+                cnt.showButton = false;
+                const behavior = (cnt.ytRendererBehavior || cnt);
+                if (typeof behavior.invalidate === 'function') {
+                  behavior.invalidate(!1);
+                }
+              }
+            }
+          })
+        }
+
+        if ((q & 64) === 64) {
+          actioned = false;
+        } else if ((p & 64) == 64 && (q & 64) === 0) {
+
+          if ((q & 32) === 32) {
+            ytBtnCloseEngagementPanels();
+          }
+
+          if ((q & (2 | 8)) === (2 | 8)) {
+            if (lastPanel === 'chat') {
+
+              switchToTab(null);
+              actioned = true;
+            } else if (lastPanel) {
+              ytBtnCollapseChat();
+              actioned = true;
+            }
+          }
+
+        } else if ((p & (1 | 2 | 8 | 16 | 32)) === (1 | 0 | 0 | 16 | 0) && (q & (1 | 2 | 8 | 16 | 32)) === (1 | 0 | 8 | 16 | 0)) {
+          ytBtnCancelTheater();
+          actioned = true;
+        } else if ((p & (1 | 16 | 32)) === (0 | 16 | 0) && (q & (1 | 16 | 32)) === (0 | 16 | 32) && (q & (2 | 8)) > 0) {
+          if (q & 2) {
+            switchToTab(null);
+            actioned = true;
+          }
+          if (q & 8) {
+            ytBtnCollapseChat();
+            actioned = true;
+          }
+        } else if ((p & (1 | 16 | 8 | 2)) === (16 | 8) && (q & (1 | 16 | 8 | 2)) === (16)) {
+          if (lastTab) {
+            switchToTab(lastTab)
+            actioned = true;
+          }
+
+        } else if ((p & 1) === 0 && (q & 1) === 1) {
+          if ((q & 32) === 32) {
+            ytBtnCloseEngagementPanels();
+          }
+          if ((p & 9) === 8 && (q & 9) === 9) {
+            ytBtnCollapseChat();
+          }
+          switchToTab(null)
+          actioned = true;
+
+        } else if ((p & 3) === 1 && (q & 3) === 3) {
+          ytBtnCancelTheater();
+          actioned = true;
+        } else if ((p & 10) === 2 && (q & 10) === 10) {
+
+          switchToTab(null)
+          actioned = true;
+
+        } else if ((p & (8 | 32)) === (0 | 32) && (q & (8 | 32)) === (8 | 32)) {
+
+          ytBtnCloseEngagementPanels();
+          actioned = true;
+
+
+        } else if ((p & (2 | 32)) === (0 | 32) && (q & (2 | 32)) === (2 | 32)) {
+
+          ytBtnCloseEngagementPanels();
+          actioned = true;
+
+        } else if ((p & (2 | 8)) === (0 | 8) && (q & (2 | 8)) === (2 | 8)) {
+
+          ytBtnCollapseChat();
+          actioned = true;
+          // if( lastPanel && (p & (1|16) === 16)  && (q & (1 | 16 | 8 | 2)) === (16) ){
+          //   switchToTab(lastTab)
+          //   actioned = true;
+          // }
+        } else if ((p & 1) === 1 && (q & (1 | 32)) === (0 | 0)) {
+          if (lastPanel === 'chat') {
+            ytBtnExpandChat()
+            actioned = true;
+          } else if (lastPanel === lastTab && lastTab) {
+            switchToTab(lastTab)
+            actioned = true;
+          }
+        }
+
+
+        // 24 20
+        // 8 16   4 16
+
+
+        if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16| 0 | 0)) {
+          console.log(388, 'd')
+          if (lastPanel === 'chat') {
+            ytBtnExpandChat()
+            actioned = true;
+          } else if (lastTab) {
+            switchToTab(lastTab)
+            actioned = true;
+          }
+        }
+
+
+      }
+      
+    },
+
+    'fixInitialTabStateFn': () => {
+      if (checkElementExist('ytd-live-chat-frame#chat', '[hidden], [collapsed]')) {
+        switchToTab(null);
+        if (checkElementExist('ytd-watch-flexy[theater]', '[hidden]')) {
+          ytBtnCollapseChat();
+        }
+      } else if (checkElementExist('ytd-watch-flexy[is-two-columns_]:not([theater])', '[hidden]') && !document.querySelector('[tyt-tab]')) {
+        let btn0 = document.querySelector('.tab-btn-visible') // or default button
+        if (btn0) {
+          switchToTab(btn0);
+        } else {
+          switchToTab(null);
+        }
+      } else if (checkElementExist('ytd-watch-flexy[is-two-columns_][theater]', '[hidden]') && !document.querySelector('[tyt-tab]')) {
+        switchToTab(null);
+      }
+    },
+
+    'tabs-btn-click': (evt) => {
+
+      const target = evt.target;
+      if (target instanceof HTMLElement && target.classList.contains('tab-btn') && target.hasAttribute000('tyt-tab-content')) {
+
+        evt.preventDefault();
+        evt.stopPropagation();
+        evt.stopImmediatePropagation();
+
+
+        const activeLink = target;
+
+        switchToTab(activeLink);
+
+      }
+
+    }
+
+  }
+
+  Promise.all([videosElementProvidedPromise, navigateFinishedPromise]).then(eventMap['onceInsertRightTabs']).catch(console.warn);
+  Promise.all([navigateFinishedPromise, infoExpanderElementProvidedPromise]).then(eventMap['onceInfoExpanderElementProvidedPromised']).catch(console.warn);
+
+  const isCustomElementsProvided = typeof customElements !== "undefined" && typeof (customElements || 0).whenDefined === "function";
+
+  const promiseForCustomYtElementsReady = isCustomElementsProvided ? Promise.resolve(0) : new Promise((callback) => {
+    const EVENT_KEY_ON_REGISTRY_READY = "ytI-ce-registry-created";
+    if (typeof customElements === 'undefined') {
+      if (!('__CE_registry' in document)) {
+        // https://github.com/webcomponents/polyfills/
+        Object.defineProperty(document, '__CE_registry', {
+          get() {
+            // return undefined
+          },
+          set(nv) {
+            if (typeof nv == 'object') {
+              delete this.__CE_registry;
+              this.__CE_registry = nv;
+              this.dispatchEvent(new CustomEvent(EVENT_KEY_ON_REGISTRY_READY));
+            }
+            return true;
+          },
+          enumerable: false,
+          configurable: true
+        })
+      }
+      let eventHandler = (evt) => {
+        document.removeEventListener(EVENT_KEY_ON_REGISTRY_READY, eventHandler, false);
+        const f = callback;
+        callback = null;
+        eventHandler = null;
+        f();
+      };
+      document.addEventListener(EVENT_KEY_ON_REGISTRY_READY, eventHandler, false);
+    } else {
+      callback();
+    }
+  });
+
+  const _retrieveCE = async (nodeName) => {
+    try {
+      isCustomElementsProvided || (await promiseForCustomYtElementsReady);
+      await customElements.whenDefined(nodeName);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+
+  const retrieveCE = async (nodeName) => {
+    try {
+      isCustomElementsProvided || (await promiseForCustomYtElementsReady);
+      await customElements.whenDefined(nodeName);
+      const dummy = document.querySelector(nodeName) || document.createElement(nodeName);
+      const cProto = insp(dummy).constructor.prototype;
+      return cProto;
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+
+  const moOverallRes = {
+    _yt_playerProvided: () => (((window || 0)._yt_player || 0) || 0)
+  }
+
+  const moOverall = new MutationObserver(() => {
+
+    if (typeof moOverallRes._yt_playerProvided === 'function') {
+      const r = moOverallRes._yt_playerProvided();
+      if (r) {
+        moOverallRes._yt_playerProvided = r;
+        eventMap._yt_playerProvided();
+      }
+    }
+  });
+
+  moOverall.observe(document, { subtree: true, childList: true });
+
+  document.addEventListener('yt-navigate-finish', eventMap['yt-navigate-finish'], false);
+
+  document.addEventListener('animationstart', evt => {
+    const f = eventMap[evt.animationName];
+    if (typeof f === 'function') f(evt.target);
+  }, capturePassive);
+
+  console.log('hi122')
+
+
+  mLoaded.flag |= 1;
+  document.documentElement.setAttribute111('tabview-loaded', mLoaded.makeString());
+
+  promiseForCustomYtElementsReady.then(eventMap['ceHack']);
+
+
+  executionFinished = 1;
+
+
+
+};
+const styles = {
+  'main': `
+
+
+  @keyframes relatedElementProvided {
+    0% {
+        background-position-x: 3px;
+    }
+    100% {
+        background-position-x: 4px;
+    }
+  }
+    
+  html[tabview-loaded="icp"] #related.ytd-watch-flexy {
+    animation: relatedElementProvided 1ms linear 0s 1 normal forwards;
+  }
+    
+  html[tabview-loaded="icp"] #right-tabs #related.ytd-watch-flexy,
+  html[tabview-loaded="icp"] [hidden] #related.ytd-watch-flexy {
+    animation: initial;
+  }
+
+  
+
+
+  
+    
+  html[tabview-loaded="icp"] #right-tabs ytd-expander#expander,
+  html[tabview-loaded="icp"] [hidden] ytd-expander#expander,
+  html[tabview-loaded="icp"] ytd-comments ytd-expander#expander{
+    animation: initial;
+  }
+
+
+
+
+
+  #secondary.ytd-watch-flexy {
+    position: relative;
+  }
+
+  #secondary-inner.style-scope.ytd-watch-flexy {
+    height: 100%;
+  }
+
+  /*
+  ytd-watch-flexy[tyt-tab^="#"] #secondary-inner.style-scope.ytd-watch-flexy::after {
+    display: block;
+    content:'';
+    height: 100vh;
+  }
+    */
+
+  secondary-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    height: 100%;
+    max-height: calc(100vh - var(--ytd-toolbar-height, 56px));
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    contain: strict;
+
+    /*     border-right: var(--ytd-margin-6x) solid transparent; */
+    padding-top: var(--ytd-margin-6x);
+    padding-right: var(--ytd-margin-6x);
+    padding-bottom: var(--ytd-margin-6x);
+  }
+
+
+
+  #right-tabs {
+      position: relative;
+      display: flex;
+      padding: 0;
+      margin: 0;    
+      flex-grow: 1;
+      flex-direction: column;
+  }
+
+  [tyt-tab=""] #right-tabs{
+    flex-grow: 0;
+  }
+
+  [tyt-tab=""] #right-tabs .tab-content{
+      border: 0;
+  }
+
+  #right-tabs .tab-content {
+    flex-grow: 1;
+  }
+
+  ytd-watch-flexy[hide-default-text-inline-expander] #primary.style-scope.ytd-watch-flexy ytd-text-inline-expander {
+    display: none;
+  }
+
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden {
+    --comment-pre-load-sizing: 90px;
+    visibility: collapse;
+    z-index: -1;
+    position: fixed !important;
+    left: 2px;
+    top: 2px;
+    width: var(--comment-pre-load-sizing) !important;
+    height: var(--comment-pre-load-sizing) !important;
+    display: block !important;
+    pointer-events: none !important;
+    overflow:hidden;
+    contain:strict;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > * {
+    display: none !important;
+  }
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections {
+    display: block !important;
+    overflow:hidden;
+    height: var(--comment-pre-load-sizing);
+    width: var(--comment-pre-load-sizing);
+    contain:strict;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > * {
+    display: none !important;
+  }
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents {
+    display: flex !important;
+    flex-direction: row;
+    gap: 60px;
+    overflow:hidden;
+    height: var(--comment-pre-load-sizing);
+    width: var(--comment-pre-load-sizing);
+    contain:strict;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+    
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > * {
+    display: block !important;
+    visibility: collapse !important;
+    overflow: hidden;
+    margin: calc(2 * var(--comment-pre-load-sizing)) !important;
+    width: var(--comment-pre-load-sizing);
+    height: var(--comment-pre-load-sizing);
+    box-sizing: content-box;
+    contain:strict;
+    border: 0;
+    padding: 0;
+  }
+
+  
+    
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > *:empty {
+    display: none !important;
+    visibility: collapse !important;
+    overflow: hidden;
+    margin: 0px !important;
+    width: 0px;
+    height: 0px;
+    box-sizing: content-box;
+    contain:strict;
+  }
+    
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > ytd-continuation-item-renderer {
+    display: block !important;
+    visibility: collapse !important;
+    overflow: initial;
+    margin: 0px !important;
+    width: 1px;
+    height: 1px;
+    box-sizing: initial;
+    contain:strict;
+  }
+
+  
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > * > * {
+    display: none !important;
+    visibility: collapse !important;
+    overflow: hidden;
+    margin: 0px !important;
+    width: 0px;
+    height: 0px;
+    box-sizing: content-box;
+    contain:strict;
+  }
+    
+
+  
+
+  #right-tabs #material-tabs {
+    position: relative;
+    display: flex;
+    padding: 0;
+    /*outline: 1px solid var(--tyt-x-border-color);*/
+    /*outline: 1px solid var(--ytd-searchbox-legacy-border-color);*/
+    /* 2023/05/05 chaged from outline to border */
+    border: 1px solid var(--ytd-searchbox-legacy-border-color);
+    /* border-bottom:0; */
+}
+
+ytd-watch-flexy[flexy]:not([is-two-columns_]) #right-tabs #material-tabs {
+    outline: 0;
+}
+
+#right-tabs #material-tabs a.tab-btn[tyt-tab-content] > * {
+  pointer-events: none;
+}
+
+#right-tabs #material-tabs a.tab-btn[tyt-tab-content] > .font-size-right {
+  pointer-events: initial;
+  display: none; /* not yet supported */
+}
+
+    
+ytd-watch-flexy #right-tabs .tab-content {
+    padding: 0;
+    box-sizing: border-box;
+    display: block;
+    /*--yt-spec-brand-background-primary:var(--yt-spec-general-background-a);*/
+    /*outline: 1px solid var(--tyt-x-border-color);*/
+    /* outline: 1px solid var(--ytd-searchbox-legacy-border-color); */
+    /* 2023/05/05 chaged from outline to border */
+    border: 1px solid var(--ytd-searchbox-legacy-border-color);
+    border-top:0;
+    position: relative;
+    top: 0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+ytd-watch-flexy[is-two-columns_] #right-tabs .tab-content {
+/*
+    height: var(--tyt-tabs-content-height);
+    contain: size layout paint;
+    */
+}
+
+ytd-watch-flexy:not([is-two-columns_]) #right-tabs .tab-content {
+    height: 100%;
+}
+
+ytd-watch-flexy #right-tabs .tab-content-cld {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    width: 100%;
+    overflow: auto;
+    --tab-content-padding: var(--ytd-margin-4x);
+    padding: var(--tab-content-padding);
+    contain: layout paint;
+
+}
+
+.tab-content-cld,
+#right-tabs,
+.tab-content {
+    transition: none;
+    animation: none;
+}
+
+ytd-watch-flexy[is-two-columns_] #right-tabs .tab-content-cld {
+    height: 100%;
+    width: 100%;
+    contain: size layout paint style;
+    position: absolute;
+}
+
+ytd-watch-flexy #right-tabs .tab-content-cld.tab-content-hidden {
+    display: none;
+    width: 100%;
+    /* width fix */
+    contain: size layout paint style;
+}
+
+
+
+
+
+
+@supports (color: var(--tabview-tab-btn-define)) {
+
+/* give background color; otherwise it will be transparent in dark mode, single column*/
+ytd-watch-flexy #right-tabs .tab-btn {
+    background: var(--yt-spec-general-background-a);
+}
+
+html {
+    --tyt-tab-btn-flex-grow: 1;
+    --tyt-tab-btn-flex-basis: 0%;
+    --tyt-tab-bar-color-1-def: #ff4533;
+    --tyt-tab-bar-color-2-def: var(--yt-brand-light-red);
+    --tyt-tab-bar-color-1:var(--main-color, var(--tyt-tab-bar-color-1-def));
+    --tyt-tab-bar-color-2:var(--main-color, var(--tyt-tab-bar-color-2-def));
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content] {
+
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0%;
+    
+    flex-grow: var(--tyt-tab-btn-flex-grow);
+    flex-basis: var(--tyt-tab-btn-flex-basis);
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    text-transform: uppercase;
+    --tyt-tab-btn-color: var(--yt-spec-text-secondary);
+    color: var(--tyt-tab-btn-color);
+    text-align: center;
+    padding: 14px 8px 10px;
+    border: 0;
+    border-bottom: 4px solid transparent;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 18px;
+    cursor: pointer;
+    transition: border 200ms linear 100ms;
+    background-color: var(--ytd-searchbox-legacy-button-color);
+    text-transform: var(--yt-button-text-transform, inherit);
+    user-select: none !important;
+
+    overflow: hidden;
+    white-space: nowrap;
+    /*text-overflow: ellipsis;*/
+    text-overflow: clip;
+
+}
+
+
+/* .tab-btn[tyt-tab-content] */
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]>svg {
+    height: 18px;
+    padding-right: 0px;
+    vertical-align: bottom;
+    opacity: .5;
+    margin-right: 0px;
+    color: var(--yt-button-color, inherit);
+    fill: var(--iron-icon-fill-color, currentcolor);
+    stroke: var(--iron-icon-stroke-color, none);
+}
+
+ytd-watch-flexy #right-tabs .tab-btn {
+    --tabview-btn-txt-ml: 8px;
+}
+ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"] {
+    --tabview-btn-txt-ml: 0px;
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]>svg+span {
+    margin-left: var(--tabview-btn-txt-ml);
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content] svg {
+    pointer-events: none;
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content].active {
+    font-weight: 500;
+    outline: 0;
+    --tyt-tab-btn-color: var(--yt-spec-text-primary);
+    background-color: var(--ytd-searchbox-legacy-button-focus-color);
+    border-bottom: 4px var(--tyt-tab-bar-color-1) solid;
+    border-bottom-color: var(--tyt-tab-bar-color-2);
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content].active svg {
+    opacity: .9
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]:not(.active):hover {
+    background-color: var(--ytd-searchbox-legacy-button-hover-color);
+    --tyt-tab-btn-color: var(--yt-spec-text-primary);
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]:not(.active):hover svg {
+    opacity: .9
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content] {
+    user-select: none !important;
+}
+
+ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content].tab-btn-hidden {
+    display: none;
+}
+
+ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"],
+ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"]:hover {
+    --tyt-tab-btn-color: var(--yt-spec-icon-disabled);
+}
+
+ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"] span#tyt-cm-count:empty{
+  display:none;
+}
+
+
+ytd-watch-flexy #right-tabs .tab-btn span#tyt-cm-count:empty::after {
+    display: inline-block;
+    width: 4em;
+    text-align: left;
+    font-size: inherit;
+    color: currentColor;
+    transform: scaleX(0.8);
+}
+
+}
+
+@supports (color: var(--tyt-cm-count-define)){
+
+ytd-watch-flexy {
+    --tyt-x-loading-content-letter-spacing: 2px;
+}
+
+html {
+    --tabview-text-loading: "Loading";
+    --tabview-text-fetching: "Fetching";
+    --tabview-panel-loading: var(--tabview-text-loading);
+}
+
+html:lang(ja) {
+    --tabview-text-loading: "読み込み中";
+    --tabview-text-fetching: "フェッチ..";
+}
+
+html:lang(ko) {
+    --tabview-text-loading: "로딩..";
+    --tabview-text-fetching: "가져오기..";
+}
+
+html:lang(zh-Hant) {
+    /* 資訊科技名詞 @ https://terms.naer.edu.tw/ */
+    --tabview-text-loading: "載入中";
+    --tabview-text-fetching: "擷取中";
+}
+
+html:lang(zh-Hans) {
+    --tabview-text-loading: "加载中";
+    --tabview-text-fetching: "抓取中";
+}
+
+html:lang(ru) {
+    --tabview-text-loading: "Загрузка";
+    --tabview-text-fetching: "Получение";
+}
+
+ytd-watch-flexy #right-tabs .tab-btn span#tyt-cm-count:empty::after {
+    content: var(--tabview-text-loading);
+    letter-spacing: var(--tyt-x-loading-content-letter-spacing);
+}
+
+}
+
+
+@supports (color: var(--tabview-font-size-btn-define)) {
+
+.font-size-right {
+    display: inline-flex;
+    flex-direction: column;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 16px;
+    padding: 4px 0;
+    justify-content: space-evenly;
+    align-content: space-evenly;
+    pointer-events: none;
+}
+
+html body ytd-watch-flexy.style-scope .font-size-btn {
+    user-select: none !important;
+}
+
+.font-size-btn {
+    --tyt-font-size-btn-display: none;
+    display: var(--tyt-font-size-btn-display, none);
+    /* hide zoom btn for FireFox */
+    width: 12px;
+    height: 12px;
+    color: var(--yt-spec-text-secondary);
+    background-color: var(--yt-spec-badge-chip-background);
+    box-sizing: border-box;
+    cursor: pointer;
+    transform-origin: left top;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    font-family: 'Menlo', 'Lucida Console', 'Monaco', 'Consolas', monospace;
+    line-height: 100%;
+    font-weight: 900;
+    transition: background-color 90ms linear, color 90ms linear;
+    pointer-events: all;
+}
+
+.font-size-btn:hover {
+    background-color: var(--yt-spec-text-primary);
+    color: var(--yt-spec-general-background-a);
+}
+
+@supports (zoom: 0.5) {
+
+    .tab-btn .font-size-btn {
+        --tyt-font-size-btn-display: none;
+    }
+
+    .tab-btn.active:hover .font-size-btn {
+        --tyt-font-size-btn-display: inline-block;
+    }
+
+}
+
+}
+
+
+body ytd-watch-flexy:not([is-two-columns_]) #columns.ytd-watch-flexy{
+  flex-direction: column;
+}
+
+body ytd-watch-flexy:not([is-two-columns_]) #secondary.ytd-watch-flexy {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body ytd-watch-flexy:not([is-two-columns_]) #secondary.ytd-watch-flexy secondary-wrapper {
+
+    padding-left: var(--ytd-margin-6x);
+    contain: content;
+    height: initial;
+
+
+}
+
+body ytd-watch-flexy:not([is-two-columns_]) #secondary.ytd-watch-flexy secondary-wrapper #right-tabs {
+  overflow: auto;
+
+}
+
+[tyt-chat="+"] secondary-wrapper > [tyt-chat-container]{
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+[tyt-chat="+"] secondary-wrapper > [tyt-chat-container] > #chat{
+    flex-grow: 1;
+}
+
+ytd-watch-flexy[is-two-columns_]:not([theater]) #columns.style-scope.ytd-watch-flexy {
+    min-height: calc(100vh - var(--ytd-toolbar-height, 56px));
+}
+
+ytd-watch-flexy[is-two-columns_] ytd-live-chat-frame#chat {
+    min-height: initial !important;
+    height: initial !important;
+}
+
+ytd-watch-flexy[tyt-tab^="#"]:not([is-two-columns_]):not([tyt-chat="+"]) #right-tabs {
+    min-height: var(--ytd-watch-flexy-chat-max-height)
+}
+
+body ytd-watch-flexy:not([is-two-columns_]) #chat.ytd-watch-flexy {
+  margin-top: 0;
+
+}
+
+body ytd-watch-flexy:not([is-two-columns_]) ytd-watch-metadata.ytd-watch-flexy {
+  margin-bottom: 0;
+}
+
+ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer {
+  display: none;
+}
+
+/*
+#tab-info #items.style-scope.ytd-video-description-infocards-section-renderer {
+
+  display: inline-flex;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+#tab-info #left-arrow-container.style-scope.ytd-video-description-infocards-section-renderer,
+#tab-info #left-arrow.style-scope.ytd-video-description-infocards-section-renderer,
+#tab-info #right-arrow-container.style-scope.ytd-video-description-infocards-section-renderer,
+#tab-info #right-arrow.style-scope.ytd-video-description-infocards-section-renderer {
+  visibility: collapse;
+}
+  */
+
+/*
+#tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #left-arrow-container.ytd-video-description-infocards-section-renderer{
+left:0;
+}
+#tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #right-arrow-container.ytd-video-description-infocards-section-renderer{
+right:0;
+}
+
+#tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #scroll-container.ytd-video-description-infocards-section-renderer{
+margin: 0 32px;
+}
+*/
+
+
+#tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #left-arrow-container.ytd-video-description-infocards-section-renderer > #left-arrow{
+  border: 6px solid transparent;
+  opacity: 0.65;
+  }
+  #tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #right-arrow-container.ytd-video-description-infocards-section-renderer >#right-arrow{
+  border: 6px solid transparent;
+  opacity: 0.65;
+  }
+
+
+
+#tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #left-arrow-container.ytd-video-description-infocards-section-renderer > #left-arrow:hover{
+  opacity: 1;
+  }
+  #tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #right-arrow-container.ytd-video-description-infocards-section-renderer >#right-arrow:hover{
+
+    opacity: 1;
+    }
+
+
+  #tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer >  div#left-arrow-container::before {
+    content: '';
+    background: transparent;
+    width: 40px;
+    display: block;
+    height: 40px;
+    position: absolute;
+    left: -20px;
+    top: 0;
+    z-index: -1;
+}
+  #tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer >  div#right-arrow-container::before {
+    content: '';
+    background: transparent;
+    width: 40px;
+    display: block;
+    height: 40px;
+    position: absolute;
+    right: -20px;
+    top: 0;
+    z-index: -1;
+}
+
+
+
+body ytd-watch-flexy[is-two-columns_][tyt-egm-panel_] #columns.style-scope.ytd-watch-flexy #panels.style-scope.ytd-watch-flexy{
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+
+body ytd-watch-flexy[is-two-columns_][tyt-egm-panel_] #columns.style-scope.ytd-watch-flexy #panels.style-scope.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]{
+
+    height: initial;
+    max-height: initial;
+    min-height: initial;
+    flex-grow: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+
+    
+}
+
+
+body ytd-watch-flexy[is-two-columns_][tyt-egm-panel_] #columns.style-scope.ytd-watch-flexy #panels.style-scope.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] #content.style-scope.ytd-engagement-panel-section-list-renderer{
+
+/*
+height: initial;
+max-height: initial;
+min-height: initial;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    */
+}
+
+
+body ytd-watch-flexy[is-two-columns_][tyt-egm-panel_] #columns.style-scope.ytd-watch-flexy #panels.style-scope.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] #content.style-scope.ytd-engagement-panel-section-list-renderer > [panel-target-id]{
+
+/*
+height: initial;
+max-height: initial;
+min-height: initial;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    */
+}
+
+
+secondary-wrapper [visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] ytd-transcript-renderer:not(:empty),
+ secondary-wrapper [visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"] #body.ytd-transcript-renderer:not(:empty),
+  secondary-wrapper [visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]  #content.ytd-transcript-renderer:not(:empty){
+
+  flex-grow: 1;
+height: initial;
+max-height: initial;
+min-height: initial;
+}
+
+secondary-wrapper #content.ytd-engagement-panel-section-list-renderer{
+
+    position: relative;
+}
+
+@supports (contain: strict) {
+
+secondary-wrapper #content.ytd-engagement-panel-section-list-renderer > [panel-target-id]:only-child{
+
+    contain: strict;
+    max-height: 100%;
+}
+
+}
+
+
+@supports not (contain: strict) {
+
+secondary-wrapper #content.ytd-engagement-panel-section-list-renderer > [panel-target-id]:only-child{
+
+    position: absolute;
+    max-height: 100%;
+}
+
+}
+
+
+body ytd-watch-flexy[theater] #secondary.ytd-watch-flexy {
+    margin-top: 0;
+    padding-top: var(--ytd-margin-2x);
+}
+    
+
+body ytd-watch-flexy[theater] secondary-wrapper {
+    padding-top: var(--ytd-margin-2x);
+}
+
+body ytd-watch-flexy[theater] #chat.ytd-watch-flexy{
+
+    margin-bottom:  var(--ytd-margin-2x);
+}
+
+#tab-comments ytd-comments#comments [field-of-cm-count]{
+  margin-top:0;
+}
+  /*
+
+#tab-info #social-links.ytd-video-description-infocards-section-renderer {
+  margin-bottom:0;
+}
+#tab-info #social-links.ytd-video-description-infocards-section-renderer ~ #infocards-section {
+    margin-top: 16px;
+}
+
+#tab-info ytd-structured-description-content-renderer ytd-video-description-infocards-section-renderer.ytd-structured-description-content-renderer{
+padding-bottom:0;
+}
+*/
+
+#tab-info [class]:last-child {
+  margin-bottom:0;
+  padding-bottom:0;
+}
+
+
+#tab-info ytd-rich-metadata-row-renderer ytd-rich-metadata-renderer {
+  max-width: initial;
+}
+
+ytd-watch-flexy[is-two-columns_] secondary-wrapper #chat.ytd-watch-flexy {
+  margin-bottom: var(--ytd-margin-3x);
+}
+
+ytd-watch-flexy[tyt-tab] tp-yt-paper-tooltip {
+    white-space: nowrap;
+    contain: content;
+}
+
+
+ytd-watch-info-text tp-yt-paper-tooltip.style-scope.ytd-watch-info-text{
+  margin-bottom: -300px;
+  margin-top: -96px;
+}
+
+
+[hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata {
+ 
+font-size: 1.2rem;
+line-height: 1.8rem;
+
+}
+
+[hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata yt-animated-rolling-number{
+    font-size: inherit;
+}
+
+
+[hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata #info-container.style-scope.ytd-watch-info-text{
+  align-items: center;
+}
+
+[hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata.item.ytd-watch-metadata{
+margin-top: 6px;
+}
+
+[hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata > #description-inner.ytd-watch-metadata{
+
+margin: 6px 12px; 
+
+}
+
+[hide-default-text-inline-expander] ytd-watch-metadata[title-headline-xs] h1.ytd-watch-metadata {
+
+font-size: 1.8rem;
+}
+
+
+ 
+
+ytd-watch-flexy[is-two-columns_][hide-default-text-inline-expander] #below.style-scope.ytd-watch-flexy ytd-merch-shelf-renderer{
+    padding: 0;
+        border: 0;
+        margin:0;
+}
+
+
+ytd-watch-flexy[is-two-columns_][hide-default-text-inline-expander] #below.style-scope.ytd-watch-flexy ytd-watch-metadata.ytd-watch-flexy {
+  margin-bottom: 6px;
+}
+
+#tab-info yt-video-attribute-view-model .yt-video-attribute-view-model--horizontal .yt-video-attribute-view-model__link-container .yt-video-attribute-view-model__hero-section {
+  flex-shrink:0;
+}
+
+
+#tab-info yt-video-attribute-view-model .yt-video-attribute-view-model__overflow-menu{
+  background: var(--yt-emoji-picker-category-background-color);
+      border-radius: 99px;
+}
+
+#tab-info yt-video-attribute-view-model .yt-video-attribute-view-model--image-square.yt-video-attribute-view-model--image-large .yt-video-attribute-view-model__hero-section{
+
+  max-height: 128px;
+}
+
+#tab-info yt-video-attribute-view-model .yt-video-attribute-view-model--image-large .yt-video-attribute-view-model__hero-section{
+
+  max-width: 128px;
+}
+
+#tab-info ytd-reel-shelf-renderer #items.yt-horizontal-list-renderer ytd-reel-item-renderer.yt-horizontal-list-renderer {
+  max-width: 142px;
+}
+
+ytd-watch-info-text#ytd-watch-info-text.style-scope.ytd-watch-metadata #view-count.style-scope.ytd-watch-info-text{
+  align-items: center;
+  
+  }
+
+
+ytd-watch-info-text#ytd-watch-info-text.style-scope.ytd-watch-metadata #date-text.style-scope.ytd-watch-info-text{
+  align-items: center;
+  
+  }
+
+
+ytd-watch-info-text:not([detailed]) #info.ytd-watch-info-text a.yt-simple-endpoint.yt-formatted-string {
+
+pointer-events: none;
+}
+
+
+body ytd-app > ytd-popup-container > tp-yt-iron-dropdown > #contentWrapper >  [slot="dropdown-content"] {
+
+    backdrop-filter: none ;
+}
+
+
+  `
+};
+(async () => {
+  const communicationKey = `ck-${Date.now()}-${Math.floor(Math.random() * 314159265359 + 314159265359).toString(36)}`;
+
+  /** @type {globalThis.PromiseConstructor} */
+  const Promise = (async () => { })().constructor; // YouTube hacks Promise in WaterFox Classic and "Promise.resolve(0)" nevers resolve.
+
+  if (!document.documentElement) {
+    await Promise.resolve(0);
+    while (!document.documentElement) {
+      await new Promise(resolve => nextBrowserTick(resolve)).then();
+    }
+  }
+  const sourceURL = 'debug://tabview-youtube/tabview.execution.js'
+  const textContent = `(${executionScript})("${communicationKey}");${"\n\n"}//# sourceURL=${sourceURL}${'\n'}`
+
+  // const isMyScriptInChromeRuntime = () => typeof GM === 'undefined' && typeof ((((window || 0).chrome || 0).runtime || 0).getURL) === 'function';
+  // const isGMAvailable = () => typeof GM !== 'undefined' && !isMyScriptInChromeRuntime();
+
+  // if(isMyScriptInChromeRuntime()){
+  //   let button = document.createElement('button');
+  //   button.setAttribute('onclick', textContent);
+  //   button.click();
+  //   button = null;
+  // }else{
+  //   GM_addElement('script', {
+  //     textContent: textContent
+  //   });
+  // }
+
+  let button = document.createElement('button');
+  button.setAttribute('onclick', textContent);
+  button.click();
+  button = null;
+
+
+  let style = document.createElement('style');
+  const sourceURLMainCSS = 'debug://tabview-youtube/tabview.main.css';
+  style.textContent = `${styles['main'].trim()}${'\n\n'}/*# sourceURL=${sourceURLMainCSS} */${'\n'}`;
+  document.documentElement.appendChild(style);
+
+
+})();

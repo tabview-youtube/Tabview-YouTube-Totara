@@ -1,0 +1,24 @@
+{
+   "content_scripts": [ {
+      "js": [ "js/content.js" ],
+      "matches": [ "https://www.youtube.com/*" ],
+      "exclude_matches": [ "https://*.youtube.com/live_chat*" ],
+      "run_at": "document_start",
+      "all_frames": false
+   } ],
+   "description": "To make tabs for Info, Comments, Videos and Playlist",
+   "icons": {
+      "128": "images/icon128p.png"
+   },
+   "manifest_version": 3,
+   "name": "Tabview YouTube Totara",
+   "permissions": [ ],
+    "host_permissions": [
+      "https://www.youtube.com/*"
+    ],
+   "version": "5.0.001",
+   "web_accessible_resources": [{
+      "resources": ["images/*.png", "js/injection*.js", "js/content.js", "css/style_*.css"],
+      "matches": ["https://www.youtube.com/*"]
+    }]
+}
