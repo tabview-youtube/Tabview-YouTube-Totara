@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.010
+// @version               5.0.011
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -267,6 +267,8 @@ const executionScript = (communicationKey) => {
         if (t === node) continue;
         nodeList.push(t);
       }
+
+      inPageRearrange = true;
       if (node.parentNode === this) {
         let fm = new DocumentFragment();
         if (nodeList.length > 0) {
@@ -289,6 +291,7 @@ const executionScript = (communicationKey) => {
         if (!nextSiblings) nextSiblings = [];
         this.replaceChildren000(...previousSiblings, node, ...nextSiblings);
       }
+      inPageRearrange = false;
       if (nodeList.length > 0) {
         for (const t of nodeList) {
           if (t instanceof Element && t.isConnected === false) t.remove(); // remove triggering
@@ -1355,7 +1358,11 @@ const executionScript = (communicationKey) => {
       if (!document.querySelector('noscript#aythl')) {
         const noscript = document.createElement('noscript')
         noscript.id = 'aythl';
+
+        inPageRearrange = true;
         ytdFlexyElm.insertBefore000(noscript, ytdFlexyElm.firstChild);
+
+        inPageRearrange = false;
 
       }
       const noscript = document.querySelector('noscript#aythl');
@@ -1545,7 +1552,10 @@ const executionScript = (communicationKey) => {
             }
           }
           // console.log('qww', w, w2)
+
+          inPageRearrange = true;
           secondaryWrapper.replaceChildren000(...w, ...w2);
+          inPageRearrange = false;
           const chatElm = elements.chat;
           const chatCnt = insp(chatElm);
           if (chatCnt && typeof chatCnt.urlChanged === 'function' && secondaryWrapper.contains(chatElm)) {
@@ -2131,6 +2141,7 @@ const executionScript = (communicationKey) => {
       };
     })();
 
+    let inPageRearrange = false;
 
     const plugin = {
       'minibrowser': {
@@ -2224,20 +2235,21 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::attached']).catch(console.warn);
             return this.attached498();
           }
         }
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::detached']).catch(console.warn);
             return this.detached498();
           }
         }
       },
 
       'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
@@ -2251,6 +2263,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-watch-next-secondary-results-renderer::detached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::detached');
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
@@ -2304,7 +2317,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-comments::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-comments::attached']).catch(console.warn);
             // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
             return this.attached498();
           }
@@ -2312,7 +2325,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-comments::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-comments::detached']).catch(console.warn);
             // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
             return this.detached498();
           }
@@ -2360,6 +2373,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-comments::attached': async (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
@@ -2403,6 +2417,7 @@ const executionScript = (communicationKey) => {
 
       },
       'ytd-comments::detached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::detached');
         // console.log(858, hostElement)
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
@@ -2436,7 +2451,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::attached']).catch(console.warn);
             Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::dataChanged']).catch(console.warn); // force dataChanged on attached
             return this.attached498();
           }
@@ -2444,7 +2459,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::detached']).catch(console.warn);
             return this.detached498();
           }
         }
@@ -2461,6 +2476,7 @@ const executionScript = (communicationKey) => {
 
 
       'ytd-comments-header-renderer::attached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::attached');
 
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
@@ -2482,6 +2498,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-comments-header-renderer::detached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::detached');
 
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
@@ -2567,14 +2584,14 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-expander::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-expander::attached']).catch(console.warn);
             return this.attached498();
           }
         }
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-expander::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-expander::detached']).catch(console.warn);
             return this.detached498();
           }
         }
@@ -2615,7 +2632,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-expander::attached': (hostElement) => {
-        console.log(5084, 'ytd-expander::attached');
+        // if (inPageRearrange) return;
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -2628,6 +2645,8 @@ const executionScript = (communicationKey) => {
           ioComment.observe(hostElement);
         } else if (hostElement instanceof HTMLElement && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
           //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
+
+          console.log(5084, 'ytd-expander::attached');
 
           elements.infoExpander = hostElement
           // console.log(1299, hostElement.parentNode, isRightTabsInserted)
@@ -2657,7 +2676,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-expander::detached': (hostElement) => {
-        console.log(5084, 'ytd-expander::detached');
+        // if (inPageRearrange) return;
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
@@ -2667,6 +2686,7 @@ const executionScript = (communicationKey) => {
           ioComment.unobserve(hostElement);
           hostElement.removeAttribute000('tyt-content-comment-entry')
         } else if (hostElement.hasAttribute000('tyt-main-info')) {
+          console.log(5084, 'ytd-expander::detached');
           elements.infoExpander = null;
           hostElement.removeAttribute000('tyt-main-info');
         }
@@ -2679,14 +2699,14 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
             return this.attached498();
           }
         }
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
             return this.detached498();
           }
         }
@@ -2721,6 +2741,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-live-chat-frame::attached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
 
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
@@ -2747,6 +2768,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-live-chat-frame::detached': (hostElement) => {
+        // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::detached');
 
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
@@ -2774,20 +2796,21 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::attached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::attached']).catch(console.warn);
             return this.attached498();
           }
         }
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::detached']).catch(console.warn);
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::detached']).catch(console.warn);
             return this.detached498();
           }
         }
       },
 
       'ytd-engagement-panel-section-list-renderer::attached': (hostElement) => {
+        // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
@@ -2803,6 +2826,7 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-engagement-panel-section-list-renderer::detached': (hostElement) => {
+        // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::detached');
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
@@ -2927,19 +2951,26 @@ const executionScript = (communicationKey) => {
           docTmp.innerHTML = createHTML(getTabsHTML());
           let newElm = docTmp.content.firstElementChild;
           if (newElm !== null) {
+            inPageRearrange = true;
             related.parentNode.insertBefore000(newElm, related);
+            inPageRearrange = false;
           }
           rightTabs = newElm;
           rightTabs.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
 
           const secondaryWrapper = document.createElement('secondary-wrapper');
           const secondaryInner = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy');
+          
+          inPageRearrange = true;
           secondaryWrapper.replaceChildren000(...secondaryInner.childNodes);
           secondaryInner.insertBefore000(secondaryWrapper, secondaryInner.firstChild);
+          inPageRearrange = false;
 
           rightTabs.querySelector('#material-tabs').addEventListener('click', eventMap['tabs-btn-click'], true)
 
+          inPageRearrange = true;
           if (!rightTabs.closest('secondary-wrapper')) secondaryWrapper.appendChild000(rightTabs);
+          inPageRearrange = false;
 
         }
         if (rightTabs) {
