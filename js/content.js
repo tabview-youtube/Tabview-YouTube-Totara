@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.009
+// @version               5.0.010
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -218,74 +218,11 @@ const executionScript = (communicationKey) => {
   try {
 
     executionFinished = 0;
-    // const connectedCallbackX = function () {
-    //   console.log(59391, this.is, 'connectedCallbackX');
-    //   if (typeof this.connectedCallback000 === 'function') {
-    //     return this.connectedCallback000(...arguments);
-    //   }
-    // }
-    // const disconnectedCallbackX = function () {
-    //   console.log(59392, this.is, 'disconnectedCallbackX');
-    //   if (typeof this.disconnectedCallback000 === 'function') {
-    //     return this.disconnectedCallback000(...arguments);
-    //   }
-    // }
-
-
-    const connectedCallbackY = function (callback) {
-      return function () {
-        // console.log(59391, this.is, 'connectedCallbackY');
-        if (executionFinished && typeof (this || 0).is === 'string') {
-          const f = eventMap[`${this.is}::connectedCallback`];
-          if (f) {
-            const hostElement = this.hostElement || this;
-            if (hostElement instanceof HTMLElement) {
-              hostElement.__connectedFlg__ = 4;
-              hostElement && Promise.resolve(hostElement).then(f).catch(console.warn);
-            }
-          }
-        }
-        if (typeof callback === 'function') {
-          return callback.call(this, ...arguments);
-        }
-      }
-    }
-    const disconnectedCallbackY = function (callback) {
-      return function () {
-        // console.log(59392, this.is, 'disconnectedCallbackY');
-        if (executionFinished && typeof (this || 0).is === 'string') {
-          const f = eventMap[`${this.is}::disconnectedCallback`];
-          if (f) {
-            const hostElement = this.hostElement || this;
-            if (hostElement instanceof HTMLElement) {
-              hostElement.__connectedFlg__ = 8;
-              hostElement && Promise.resolve(hostElement).then(f).catch(console.warn);
-            }
-          }
-        }
-        if (typeof callback === 'function') {
-          return callback.call(this, ...arguments);
-        }
-      }
-    }
 
     if (typeof CustomElementRegistry === 'undefined') return;
     if (CustomElementRegistry.prototype.define000) return;
     if (typeof CustomElementRegistry.prototype.define !== 'function') return;
-    CustomElementRegistry.prototype.define000 = CustomElementRegistry.prototype.define;
-    CustomElementRegistry.prototype.define = function (a, b, ...args) {
-      // b.prototype.connectedCallback000 =b.prototype.connectedCallback;
-      // b.prototype.disconnectedCallback000 =b.prototype.disconnectedCallback;
-      b.prototype.connectedCallback = connectedCallbackY(b.prototype.connectedCallback);
-      b.prototype.disconnectedCallback = disconnectedCallbackY(b.prototype.disconnectedCallback);
-      // b.prototype.__ce_tag__ = a;
-      // b.__ce_tag__ = a;
-      if (this instanceof CustomElementRegistry) {
-        return this.define000(a, b, ...args);
-      } else {
-        return customElements.define000(a, b, ...args);
-      }
-    }
+
 
     const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
 
@@ -297,7 +234,6 @@ const executionScript = (communicationKey) => {
     // console.log(pdsBaseElement.setAttribute, pdsBaseElement.getAttribute)
 
     Object.defineProperties(Node.prototype, {
-      removeChild000: pdsBaseNode.removeChild,
       appendChild000: pdsBaseNode.appendChild,
       insertBefore000: pdsBaseNode.insertBefore
     });
@@ -314,8 +250,7 @@ const executionScript = (communicationKey) => {
       hasAttribute000: pdsBaseElement.hasAttribute,
       removeAttribute000: pdsBaseElement.removeAttribute,
       querySelector000: pdsBaseElement.querySelector,
-      replaceChildren000: pdsBaseElement.replaceChildren,
-      remove000: pdsBaseElement.remove
+      replaceChildren000: pdsBaseElement.replaceChildren
     });
 
     Element.prototype.setAttribute111 = function (p, v) {
@@ -325,18 +260,20 @@ const executionScript = (communicationKey) => {
     }
 
     Element.prototype.assignChildern111 = function (previousSiblings, node, nextSiblings) {
+      // assume all previousSiblings, node, and nextSiblings are on the page
+      //  -> only remove triggering is needed
+      let nodeList = [];
+      for (let t = this.firstChild; t instanceof Node; t = t.nextSibling) {
+        if (t === node) continue;
+        nodeList.push(t);
+      }
       if (node.parentNode === this) {
-        let nodeList = [];
-        for (let t = this.firstChild; t instanceof Node; t = t.nextSibling) {
-          if (t === node) continue;
-          nodeList.push(t);
-        }
         let fm = new DocumentFragment();
         if (nodeList.length > 0) {
           fm.replaceChildren000(...nodeList);
-          nodeList.length = 0;
+          // nodeList.length = 0;
         }
-        nodeList = null;
+        // nodeList = null;
         if (previousSiblings && previousSiblings.length > 0) {
           fm.replaceChildren000(...previousSiblings);
           this.insertBefore000(fm, node);
@@ -352,6 +289,13 @@ const executionScript = (communicationKey) => {
         if (!nextSiblings) nextSiblings = [];
         this.replaceChildren000(...previousSiblings, node, ...nextSiblings);
       }
+      if (nodeList.length > 0) {
+        for (const t of nodeList) {
+          if (t instanceof Element && t.isConnected === false) t.remove(); // remove triggering
+        }
+      }
+      nodeList.length = 0;
+      nodeList = null;
     }
 
 
@@ -1579,7 +1523,7 @@ const executionScript = (communicationKey) => {
 
         const chatContainer = document.querySelector('#columns.style-scope.ytd-watch-flexy [tyt-chat-container]');
         if (secondaryInner.firstChild !== secondaryInner.lastChild || (chatContainer && !chatContainer.closest('secondary-wrapper'))) {
-          console.log(38381)
+          // console.log(38381)
           let w = [];
           let w2 = [];
           for (let node = secondaryInner.firstChild; node instanceof Node; node = node.nextSibling) {
@@ -1600,10 +1544,19 @@ const executionScript = (communicationKey) => {
               w.push(node);
             }
           }
+          // console.log('qww', w, w2)
           secondaryWrapper.replaceChildren000(...w, ...w2);
-          // if(chatCnt && typeof chatCnt.urlChanged === 'function'){
-          //   setTimeout(()=>chatCnt.urlChanged, 100);
-          // }
+          const chatElm = elements.chat;
+          const chatCnt = insp(chatElm);
+          if (chatCnt && typeof chatCnt.urlChanged === 'function' && secondaryWrapper.contains(chatElm)) {
+            console.log('elements.chat urlChangedAsync12')
+            // setTimeout(() => chatCnt.urlChanged, 136);
+            if (typeof chatCnt.urlChangedAsync12 === 'function') {
+              chatCnt.urlChangedAsync12();
+            } else {
+              setTimeout(() => chatCnt.urlChanged, 136);
+            }
+          }
         }
       }
 
@@ -2268,27 +2221,28 @@ const executionScript = (communicationKey) => {
 
 
       'ytd-watch-next-secondary-results-renderer::defined': (cProto) => {
-        // if (!cProto.attached498 && typeof cProto.attached === 'function') {
-        //   cProto.attached498 = cProto.attached;
-        //   cProto.attached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::attached']).catch(console.warn);
-        //     return this.attached498();
-        //   }
-        // }
-        // if (!cProto.detached498 && typeof cProto.detached === 'function') {
-        //   cProto.detached498 = cProto.detached;
-        //   cProto.detached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::detached']).catch(console.warn);
-        //     return this.detached498();
-        //   }
-        // }
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-watch-next-secondary-results-renderer::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
       },
 
-      'ytd-watch-next-secondary-results-renderer::connectedCallback': (hostElement) => {
+      'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
+        console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         if (hostElement instanceof HTMLElement && hostElement.matches('#columns #related ytd-watch-next-secondary-results-renderer') && !hostElement.matches('#right-tabs ytd-watch-next-secondary-results-renderer, [hidden] ytd-watch-next-secondary-results-renderer')) {
           elements.related = hostElement.closest('#related');
           hostElement.setAttribute111('tyt-videos-list', '');
@@ -2296,11 +2250,12 @@ const executionScript = (communicationKey) => {
         console.log('ytd-watch-next-secondary-results-renderer::attached', hostElement);
       },
 
-      'ytd-watch-next-secondary-results-renderer::disconnectedCallback': (hostElement) => {
+      'ytd-watch-next-secondary-results-renderer::detached': (hostElement) => {
+        console.log(5084, 'ytd-watch-next-secondary-results-renderer::detached');
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
         if (hostElement.hasAttribute000('tyt-videos-list')) {
           elements.related = null;
           hostElement.removeAttribute000('tyt-videos-list');
@@ -2349,7 +2304,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::attached']).catch(console.warn);
+            Promise.resolve(this.hostElement).then(eventMap['ytd-comments::attached']).catch(console.warn);
             // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
             return this.attached498();
           }
@@ -2357,7 +2312,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::detached']).catch(console.warn);
+            Promise.resolve(this.hostElement).then(eventMap['ytd-comments::detached']).catch(console.warn);
             // Promise.resolve(this.hostElement).then(eventMap['ytd-comments::dataChanged_']).catch(console.warn);
             return this.detached498();
           }
@@ -2404,11 +2359,12 @@ const executionScript = (communicationKey) => {
         Promise.resolve(hostElement).then(eventMap['settingCommentsVideoId']).catch(console.warn);
       },
 
-      'ytd-comments::connectedCallback': async (hostElement) => {
+      'ytd-comments::attached': async (hostElement) => {
+        console.log(5084, 'ytd-comments::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         if (!hostElement || hostElement.id !== 'comments') return;
         // if (!hostElement || hostElement.closest('[hidden]')) return;
         elements.comments = hostElement;
@@ -2446,16 +2402,17 @@ const executionScript = (communicationKey) => {
 
 
       },
-      'ytd-comments::disconnectedCallback': (hostElement) => {
+      'ytd-comments::detached': (hostElement) => {
+        console.log(5084, 'ytd-comments::detached');
         // console.log(858, hostElement)
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
 
         if (hostElement.hasAttribute000('tyt-comments-area')) {
-          foComments.disconnect();
-          foComments.takeRecords();
+          // foComments.disconnect();
+          // foComments.takeRecords();
           hostElement.removeAttribute000('tyt-comments-area');
           // document.querySelector('#tab-comments').classList.add('tab-content-hidden')
           // document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden')
@@ -2479,7 +2436,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
-            // Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::attached']).catch(console.warn);
+            Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::attached']).catch(console.warn);
             Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::dataChanged']).catch(console.warn); // force dataChanged on attached
             return this.attached498();
           }
@@ -2487,7 +2444,7 @@ const executionScript = (communicationKey) => {
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
-            // Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::detached']).catch(console.warn);
+            Promise.resolve(this.hostElement).then(eventMap['ytd-comments-header-renderer::detached']).catch(console.warn);
             return this.detached498();
           }
         }
@@ -2503,14 +2460,15 @@ const executionScript = (communicationKey) => {
       },
 
 
-      'ytd-comments-header-renderer::connectedCallback': (hostElement) => {
+      'ytd-comments-header-renderer::attached': (hostElement) => {
+        console.log(5084, 'ytd-comments-header-renderer::attached');
 
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         if (!hostElement || !hostElement.classList.contains('ytd-item-section-renderer')) return;
-        console.log(12991, 'ytd-comments-header-renderer::connectedCallback')
+        console.log(12991, 'ytd-comments-header-renderer::attached')
         const targetElement = document.querySelector('[tyt-comments-area] ytd-comments-header-renderer');
         if (hostElement === targetElement) {
           hostElement.setAttribute111('tyt-comments-header-field', '');
@@ -2523,13 +2481,14 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-comments-header-renderer::disconnectedCallback': (hostElement) => {
+      'ytd-comments-header-renderer::detached': (hostElement) => {
+        console.log(5084, 'ytd-comments-header-renderer::detached');
 
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
-        console.log(12992, 'ytd-comments-header-renderer::disconnectedCallback')
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
+        console.log(12992, 'ytd-comments-header-renderer::detached')
         if (hostElement.hasAttribute000('field-of-cm-count')) {
 
           const cmCount = document.querySelector('#tyt-cm-count');
@@ -2605,35 +2564,64 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-expander::defined': (cProto) => {
-        // if (!cProto.attached498 && typeof cProto.attached === 'function') {
-        //   cProto.attached498 = cProto.attached;
-        //   cProto.attached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-expander::attached']).catch(console.warn);
-        //     return this.attached498();
-        //   }
-        // }
-        // if (!cProto.detached498 && typeof cProto.detached === 'function') {
-        //   cProto.detached498 = cProto.detached;
-        //   cProto.detached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-expander::detached']).catch(console.warn);
-        //     return this.detached498();
-        //   }
-        // }
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-expander::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-expander::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
         if (!cProto.calculateCanCollapse498 && typeof cProto.calculateCanCollapse === 'function') {
           cProto.calculateCanCollapse498 = cProto.calculateCanCollapse;
           cProto.calculateCanCollapse = funcCanCollapse;
 
 
         }
+
+        if(!cProto.childrenChanged498 && typeof cProto.childrenChanged === 'function'){
+          cProto.childrenChanged498 = cProto.childrenChanged;
+          cProto.childrenChanged = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-expander::childrenChanged']).catch(console.warn);
+            return this.childrenChanged498();
+          }
+        }
+
+        /*
+
+        console.log('ytd-expander::defined 01');
+        
+        CustomElementRegistry.prototype.get.call(customElements, 'ytd-expander').prototype.connectedCallback = connectedCallbackY(CustomElementRegistry.prototype.get.call(customElements, 'ytd-expander').prototype.connectedCallback)
+        CustomElementRegistry.prototype.get.call(customElements, 'ytd-expander').prototype.disconnectedCallback = disconnectedCallbackY(CustomElementRegistry.prototype.get.call(customElements, 'ytd-expander').prototype.disconnectedCallback)
+        
+        console.log('ytd-expander::defined 02');
+
+        */
+
       },
 
-      'ytd-expander::connectedCallback': (hostElement) => {
+
+      'ytd-expander::childrenChanged': (hostElement) => {
+
+        if (hostElement instanceof Node && hostElement.hasAttribute000('hidden') && hostElement.hasAttribute000('tyt-main-info') && hostElement.firstElementChild) {
+          hostElement.removeAttribute('hidden');
+        }
+      },
+
+      'ytd-expander::attached': (hostElement) => {
+        console.log(5084, 'ytd-expander::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         // console.log(4959, hostElement)
-
+        
         if (hostElement instanceof HTMLElement && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
 
           hostElement.setAttribute111('tyt-content-comment-entry', '')
@@ -2658,8 +2646,8 @@ const executionScript = (communicationKey) => {
               }
               if (infoExpander) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
             }
-            infoExpanderElementProvidedPromise.resolve();
           }
+          infoExpanderElementProvidedPromise.resolve();
           hostElement.setAttribute111('tyt-main-info', '');
         }
         // console.log('ytd-expander::attached', hostElement);
@@ -2668,11 +2656,12 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-expander::disconnectedCallback': (hostElement) => {
+      'ytd-expander::detached': (hostElement) => {
+        console.log(5084, 'ytd-expander::detached');
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
         // console.log(5992, hostElement)
         if (hostElement.hasAttribute000('tyt-content-comment-entry')) {
           ioComment.unobserve(hostElement);
@@ -2687,20 +2676,20 @@ const executionScript = (communicationKey) => {
 
       'ytd-live-chat-frame::defined': (cProto) => {
 
-        // if (!cProto.attached498 && typeof cProto.attached === 'function') {
-        //   cProto.attached498 = cProto.attached;
-        //   cProto.attached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
-        //     return this.attached498();
-        //   }
-        // }
-        // if (!cProto.detached498 && typeof cProto.detached === 'function') {
-        //   cProto.detached498 = cProto.detached;
-        //   cProto.detached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
-        //     return this.detached498();
-        //   }
-        // }
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
 
         if (typeof cProto.urlChanged === 'function' && !cProto.urlChanged66 && !cProto.urlChangedAsync12 && cProto.urlChanged.length === 0) {
           cProto.urlChanged66 = cProto.urlChanged;
@@ -2720,7 +2709,10 @@ const executionScript = (communicationKey) => {
               win = null;
               if (t !== ath) return;
             }
-            this.urlChanged66();
+            setTimeout(()=>{
+              if (t !== ath) return;
+              this.urlChanged66();
+            }, 136);
           }
           cProto.urlChanged = function () {
             this.urlChangedAsync12();
@@ -2728,12 +2720,13 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-live-chat-frame::connectedCallback': (hostElement) => {
+      'ytd-live-chat-frame::attached': (hostElement) => {
+        console.log(5084, 'ytd-live-chat-frame::attached');
 
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         if (!hostElement || hostElement.id !== 'chat') return;
         console.log('ytd-live-chat-frame::attached')
         const chatElem = document.querySelector('#columns.style-scope.ytd-watch-flexy ytd-live-chat-frame#chat');
@@ -2753,12 +2746,13 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-live-chat-frame::disconnectedCallback': (hostElement) => {
+      'ytd-live-chat-frame::detached': (hostElement) => {
+        console.log(5084, 'ytd-live-chat-frame::detached');
 
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
         console.log('ytd-live-chat-frame::detached')
         if (hostElement.hasAttribute000('tyt-active-chat-frame')) {
           aoChat.disconnect();
@@ -2777,27 +2771,29 @@ const executionScript = (communicationKey) => {
 
       'ytd-engagement-panel-section-list-renderer:defined': (cProto) => {
 
-        // if (!cProto.attached498 && typeof cProto.attached === 'function') {
-        //   cProto.attached498 = cProto.attached;
-        //   cProto.attached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::attached']).catch(console.warn);
-        //     return this.attached498();
-        //   }
-        // }
-        // if (!cProto.detached498 && typeof cProto.detached === 'function') {
-        //   cProto.detached498 = cProto.detached;
-        //   cProto.detached = function () {
-        //     Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::detached']).catch(console.warn);
-        //     return this.detached498();
-        //   }
-        // }
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            Promise.resolve(this.hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
       },
 
-      'ytd-engagement-panel-section-list-renderer::connectedCallback': (hostElement) => {
+      'ytd-engagement-panel-section-list-renderer::attached': (hostElement) => {
+
+        console.log(5084, 'ytd-engagement-panel-section-list-renderer::attached');
         if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
-        if (hostElement.__connectedFlg__ !== 4) return;
-        hostElement.__connectedFlg__ = 5;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
         // console.log('ytd-engagement-panel-section-list-renderer::attached', hostElement)
         if (hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer[target-id][visibility]')) {
           hostElement.setAttribute111('tyt-egm-panel', '');
@@ -2806,11 +2802,13 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-engagement-panel-section-list-renderer::disconnectedCallback': (hostElement) => {
+      'ytd-engagement-panel-section-list-renderer::detached': (hostElement) => {
+
+        console.log(5084, 'ytd-engagement-panel-section-list-renderer::detached');
         if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
-        if (hostElement.__connectedFlg__ !== 8) return;
-        hostElement.__connectedFlg__ = 9;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
         hostElement.removeAttribute('tyt-egm-panel', '');
         Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
       },
@@ -2826,6 +2824,7 @@ const executionScript = (communicationKey) => {
         videosElementProvidedPromise.resolve();
       },
       'onceInfoExpanderElementProvidedPromised': () => {
+        console.log('hide-default-text-inline-expander');
         const ytdFlexyElm = elements.flexy;
         if (ytdFlexyElm) {
           ytdFlexyElm.setAttribute111('hide-default-text-inline-expander', '');
@@ -3254,7 +3253,9 @@ const executionScript = (communicationKey) => {
       _yt_playerProvided: () => (((window || 0)._yt_player || 0) || 0)
     }
 
+    let promiseDoChat = null;
     const moOverall = new MutationObserver(() => {
+      if (promiseDoChat) promiseDoChat.resolve();
 
       if (typeof moOverallRes._yt_playerProvided === 'function') {
         const r = moOverallRes._yt_playerProvided();
