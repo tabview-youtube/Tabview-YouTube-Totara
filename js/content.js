@@ -32,7 +32,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.011
+// @version               5.0.012
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -1349,23 +1349,25 @@ const executionScript = (communicationKey) => {
       }).filter(elm => !!elm && typeof elm.is === 'string');
       // console.log(9162, requireElements)
 
-      const source = requireElements.map(entry => ({
-        data: insp(entry).data,
-        tag: insp(entry).is,
-        elm: entry
-      }));
+      const source = requireElements.map(entry => {
+        const inst = insp(entry);
+        return {
+          data: inst.data,
+          tag: inst.is,
+          elm: entry
+        };
+      });
 
-      if (!document.querySelector('noscript#aythl')) {
-        const noscript = document.createElement('noscript')
-        noscript.id = 'aythl';
+      let noscript_ = document.querySelector('noscript#aythl');
+      if (!noscript_) {
+        noscript_ = document.createElement('noscript')
+        noscript_.id = 'aythl';
 
         inPageRearrange = true;
-        ytdFlexyElm.insertBefore000(noscript, ytdFlexyElm.firstChild);
-
+        ytdFlexyElm.insertBefore000(noscript_, ytdFlexyElm.firstChild);
         inPageRearrange = false;
-
       }
-      const noscript = document.querySelector('noscript#aythl');
+      const noscript = noscript_;
 
 
       let requiredUpdate = false;
@@ -2663,8 +2665,8 @@ const executionScript = (communicationKey) => {
                   document.querySelector('[tyt-tab-content="#tab-info"]').classList.add('tab-btn-hidden');
                 }
               }
-              if (infoExpander) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
             }
+            if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
           }
           infoExpanderElementProvidedPromise.resolve();
           hostElement.setAttribute111('tyt-main-info', '');
