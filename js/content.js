@@ -1,28 +1,3 @@
-/*
-
-MIT License
-
-Copyright (c) 2024 cyfung1031
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
 // ==UserScript==
 // @name                  Tabview YouTube Totara
 // @namespace             https://www.youtube.com/
@@ -32,7 +7,7 @@ SOFTWARE.
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.012
+// @version               5.0.013
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -61,6 +36,31 @@ SOFTWARE.
 //
 // ==/UserScript==
 
+/*
+
+MIT License
+
+Copyright (c) 2024 cyfung1031
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
 
 !window.TTP && (() => {
   // credit to Benjamin Philipp
@@ -1579,6 +1579,7 @@ const executionScript = (communicationKey) => {
     // let fixInitialTabState = 0;
 
     const aoEgmPanels = new MutationObserver(() => {
+      // console.log(5094,3);
       Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
     });
 
@@ -1596,6 +1597,7 @@ const executionScript = (communicationKey) => {
       if (lockId !== lockGet['updateEgmPanelsLock']) return;
       await navigateFinishedPromise.then().catch(console.warn);
       if (lockId !== lockGet['updateEgmPanelsLock']) return;
+      console.log('updateEgmPanels::called');
       const ytdFlexyElm = elements.flexy;
       if (!ytdFlexyElm) return;
       let newVisiblePanels = [];
@@ -2811,6 +2813,20 @@ const executionScript = (communicationKey) => {
         }
       },
 
+      'ytd-engagement-panel-section-list-renderer::bindTarget': (hostElement) => {
+
+
+        if (hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer[target-id][visibility]')) {
+          hostElement.setAttribute111('tyt-egm-panel', '');
+          Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
+          aoEgmPanels.observe(hostElement, { attributes: true, attributeFilter: ['visibility', 'hidden'] });
+
+          // console.log(5094, 2, 'ytd-engagement-panel-section-list-renderer::attached', hostElement);
+        }
+
+      },
+
+
       'ytd-engagement-panel-section-list-renderer::attached': (hostElement) => {
         // if (inPageRearrange) return;
 
@@ -2820,10 +2836,19 @@ const executionScript = (communicationKey) => {
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
         // console.log('ytd-engagement-panel-section-list-renderer::attached', hostElement)
-        if (hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer[target-id][visibility]')) {
-          hostElement.setAttribute111('tyt-egm-panel', '');
-          Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
-          aoEgmPanels.observe(hostElement, { attributes: true, attributeFilter: ['visibility', 'hidden'] });
+        // console.log(5094, 1, 'ytd-engagement-panel-section-list-renderer::attached', hostElement);
+
+        if (!hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer')) return;
+
+
+        if (hostElement.hasAttribute000('target-id') && hostElement.hasAttribute000('visibility')) {
+
+          Promise.resolve(hostElement).then(eventMap['ytd-engagement-panel-section-list-renderer::bindTarget']).catch(console.warn);
+        } else {
+
+          hostElement.setAttribute000('tyt-egm-panel-jclmd', '');
+          moEgmPanelReady.observe(hostElement, { attributes: true, attributeFilter: ['visibility', 'target-id'] });
+
         }
       },
 
@@ -2835,8 +2860,13 @@ const executionScript = (communicationKey) => {
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
-        hostElement.removeAttribute('tyt-egm-panel', '');
-        Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
+        if (hostElement.hasAttribute000('tyt-egm-panel')) {
+          hostElement.removeAttribute000('tyt-egm-panel');
+          Promise.resolve(lockSet['updateEgmPanelsLock']).then(updateEgmPanels).catch(console.warn);
+        } else if (hostElement.hasAttribute000('tyt-egm-panel-jclmd')) {
+          hostElement.removeAttribute000('tyt-egm-panel-jclmd');
+          moEgmPanelReadyClearFn();
+        }
       },
 
       '_yt_playerProvided': () => {
@@ -3286,9 +3316,12 @@ const executionScript = (communicationKey) => {
       _yt_playerProvided: () => (((window || 0)._yt_player || 0) || 0)
     }
 
-    let promiseDoChat = null;
+    let promiseWaitNext = null;
     const moOverall = new MutationObserver(() => {
-      if (promiseDoChat) promiseDoChat.resolve();
+      if (promiseWaitNext) {
+        promiseWaitNext.resolve();
+        promiseWaitNext = null;
+      }
 
       if (typeof moOverallRes._yt_playerProvided === 'function') {
         const r = moOverallRes._yt_playerProvided();
@@ -3300,6 +3333,28 @@ const executionScript = (communicationKey) => {
     });
 
     moOverall.observe(document, { subtree: true, childList: true });
+
+
+    const moEgmPanelReady = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        const target = mutation.target;
+        if (!target.hasAttribute000('tyt-egm-panel-jclmd')) continue;
+        if (target.hasAttribute000('target-id') && target.hasAttribute000('visibility')) {
+          target.removeAttribute000('tyt-egm-panel-jclmd');
+          moEgmPanelReadyClearFn();
+          Promise.resolve(target).then(eventMap['ytd-engagement-panel-section-list-renderer::bindTarget']).catch(console.warn);
+        }
+      }
+    });
+
+    const moEgmPanelReadyClearFn = () => {
+
+      if (document.querySelector('[tyt-egm-panel-jclmd]') === null) {
+        moEgmPanelReady.takeRecords();
+        moEgmPanelReady.disconnect();
+      }
+
+    };
 
     document.addEventListener('yt-navigate-finish', eventMap['yt-navigate-finish'], false);
 
