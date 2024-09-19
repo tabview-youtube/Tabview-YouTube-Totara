@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.013
+// @version               5.0.014
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -223,6 +223,7 @@ const executionScript = (communicationKey) => {
     if (CustomElementRegistry.prototype.define000) return;
     if (typeof CustomElementRegistry.prototype.define !== 'function') return;
 
+    const HTMLElement_ = HTMLElement.prototype.constructor;
 
     const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
 
@@ -257,6 +258,13 @@ const executionScript = (communicationKey) => {
       v = `${v}`;
       if (this.getAttribute000(p) === v) return;
       this.setAttribute000(p, v)
+    }
+
+    Element.prototype.incAttribute111 = function (p){
+      let v = +this.getAttribute000(p) || 0;
+      v = v > 1e9 ? v + 1 : 9;
+      this.setAttribute000(p, `${v}`);
+      return v;
     }
 
     Element.prototype.assignChildern111 = function (previousSiblings, node, nextSiblings) {
@@ -490,6 +498,17 @@ const executionScript = (communicationKey) => {
         return true;
       }
     });
+    const getMainInfo = () => {
+      const infoExpander = elements.infoExpander;
+      if (!infoExpander) return null;
+      const mainInfo = infoExpander.matches('ytd-expander[tyt-main-info]') ? infoExpander : infoExpander.querySelector000('ytd-expander[tyt-main-info]');
+      return mainInfo || null;
+    }
+    const asyncWrap = (asyncFn) => {
+      return () => {
+        Promise.resolve().then(asyncFn);
+      };
+    }
 
 
     let pageType = null;
@@ -720,6 +739,9 @@ const executionScript = (communicationKey) => {
       }
     );
 
+    // note: xxxxxxxxxAsyncLock is not expected for calling multiple time in a short period.
+    //       it is just to split the process into microTasks.
+
     const videosElementProvidedPromise = new PromiseExternal();
     const navigateFinishedPromise = new PromiseExternal();
 
@@ -736,7 +758,9 @@ const executionScript = (communicationKey) => {
         : this.alwaysToggleable || this.$.content.scrollHeight > this.collapsedHeight
     };
 
-    const aoChat = new MutationObserver(() => {
+    const aoChatAttrChangeFn = async (lockId) => {
+      if (lockGet['aoChatAttrAsyncLock'] !== lockId) return;
+
       const chatElm = elements.chat;
       const ytdFlexyElm = elements.flexy;
       // console.log(1882, chatElm, ytdFlexyElm)
@@ -752,6 +776,10 @@ const executionScript = (communicationKey) => {
         ytdFlexyElm.setAttribute111('tyt-chat', chatElm.hasAttribute000('collapsed') ? '-' : '+');
 
       }
+    };
+
+    const aoChat = new MutationObserver(()=>{
+      Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
     });
 
     const aoComment = new MutationObserver((mutations) => {
@@ -814,7 +842,7 @@ const executionScript = (communicationKey) => {
       for (const entry of entries) {
         const target = entry.target;
         const cnt = insp(target);
-        if (entry.isIntersecting && target instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
+        if (entry.isIntersecting && target instanceof HTMLElement_ && typeof cnt.calculateCanCollapse === 'function') {
           lockSet['removeKeepCommentsScrollerLock'];
           cnt.calculateCanCollapse(true);
           target.setAttribute111('io-intersected', '');
@@ -1127,7 +1155,7 @@ const executionScript = (communicationKey) => {
           return typeof elm.is == 'string'
         }).map(elm => {
           const is = elm.is;
-          while (elm instanceof HTMLElement) {
+          while (elm instanceof HTMLElement_) {
             const q = [...elm.querySelectorAll(is)].filter(e => insp(e).data);
             if (q.length >= 1) return q[0];
             elm = elm.parentNode;
@@ -1290,7 +1318,7 @@ const executionScript = (communicationKey) => {
         // do nothing
         // don't call infoFix() as it shall be only called in ytd-expander::attached and yt-navigate-finish
       } else if (oriCnt.isAttached === false && cnt.isAttached === true) {
-        if (node.isConnected && node.parentNode instanceof HTMLElement) {
+        if (node.isConnected && node.parentNode instanceof HTMLElement_) {
           node.parentNode.removeChild(node);
         } else {
           node.remove();
@@ -1341,7 +1369,7 @@ const executionScript = (communicationKey) => {
         return typeof elm.is == 'string'
       }).map(elm => {
         const is = elm.is;
-        while (elm instanceof HTMLElement) {
+        while (elm instanceof HTMLElement_) {
           const q = [...elm.querySelectorAll(is)].filter(e => insp(e).data);
           if (q.length >= 1) return q[0];
           elm = elm.parentNode;
@@ -2149,10 +2177,11 @@ const executionScript = (communicationKey) => {
 
     const plugin = {
       'minibrowser': {
-        enabled: false,
-        enable() {
+        activated: false,
+        toUse: true,
+        activate() {
 
-          if (plugin.minibrowser.enabled) return;
+          if (this.activated) return;
 
           const isPassiveArgSupport = (typeof IntersectionObserver === 'function');
           // https://caniuse.com/?search=observer
@@ -2160,7 +2189,7 @@ const executionScript = (communicationKey) => {
 
           if (!isPassiveArgSupport) return;
 
-          plugin.minibrowser.enabled = true;
+          this.activated = true;
 
           const ytdAppElm = document.querySelector('ytd-app');
           const ytdAppCnt = insp(ytdAppElm);
@@ -2177,6 +2206,140 @@ const executionScript = (communicationKey) => {
           cProto.handleNavigate = handleNavigateFactory(cProto.handleNavigate);
 
           cProto.handleNavigate.__ma355__ = 1;
+        }
+      },
+      'autoExpandInfoDesc': {
+        activated: false,
+        toUse: true,
+        /** @type { MutationObserver | null } */
+        mo: null,
+        promiseReady: new PromiseExternal(),
+        moFn(lockId) {
+
+          if (lockGet['autoExpandInfoDescAttrAsyncLock'] !== lockId) return;
+
+          const mainInfo = getMainInfo();
+          if (mainInfo && mainInfo.hasAttribute000('collapsed')) {
+            let success = false;
+            try {
+              insp(mainInfo).handleMoreTap(new Event("tap"));
+              success = true;
+            } catch (e) {
+            }
+            if (success) mainInfo.setAttribute111('tyt-no-less-btn', '');
+          }
+
+
+        },
+        activate() {
+          if (this.activated) return;
+
+          this.moFn = this.moFn.bind(this);
+          this.mo = new MutationObserver(() => {
+            Promise.resolve(lockSet['autoExpandInfoDescAttrAsyncLock']).then(this.moFn).catch(console.warn);
+          });
+          this.activated = true;
+          this.promiseReady.resolve();
+        },
+        async onMainInfoSet(mainInfo){
+          await this.promiseReady.then();
+          this.mo.observe(mainInfo, {attributes: true, attributeFilter: ['collapsed', 'attr-8ifv7']});
+          mainInfo.incAttribute111('attr-8ifv7');
+
+        }
+      },
+      'fullChannelNameOnHover': {
+        activated: false,
+        toUse: true,
+        /** @type { MutationObserver | null } */
+        mo: null,
+        /** @type { ResizeObserver | null} */
+        ro: null,
+        promiseReady: new PromiseExternal(),
+        checkResize: 0,
+        mouseEnterFn(evt) {
+
+          const target = evt ? evt.target : null;
+          if (!(target instanceof HTMLElement_)) return;
+          const metaDataElm = target.closest('ytd-watch-metadata');
+          metaDataElm.classList.remove('tyt-metadata-hover-resized');
+          this.checkResize = Date.now() + 300;
+          metaDataElm.classList.add('tyt-metadata-hover');
+          // console.log('mouseEnter')
+
+        },
+        mouseLeaveFn(evt) {
+          const target = evt ? evt.target : null;
+          if (!(target instanceof HTMLElement_)) return;
+          const metaDataElm = target.closest('ytd-watch-metadata');
+          metaDataElm.classList.remove('tyt-metadata-hover-resized');
+          metaDataElm.classList.remove('tyt-metadata-hover');
+          // console.log('mouseLeaveFn')
+
+        },
+        moFn(lockId) {
+
+          if (lockGet['fullChannelNameOnHoverAttrAsyncLock'] !== lockId) return;
+
+          const uploadInfo = document.querySelector('#primary.ytd-watch-flexy ytd-watch-metadata #upload-info');
+          if (!uploadInfo) return;
+
+          const evtOpt = { passive: true, capture: false };
+          uploadInfo.removeEventListener('pointerenter', this.mouseEnterFn, evtOpt);
+          uploadInfo.removeEventListener('pointerleave', this.mouseLeaveFn, evtOpt);
+
+          uploadInfo.addEventListener('pointerenter', this.mouseEnterFn, evtOpt);
+          uploadInfo.addEventListener('pointerleave', this.mouseLeaveFn, evtOpt);
+
+
+
+        },
+        async onNavigateFinish() {
+          await this.promiseReady.then();
+          const uploadInfo = document.querySelector('#primary.ytd-watch-flexy ytd-watch-metadata #upload-info');
+          if (!uploadInfo) return;
+          this.mo.observe(uploadInfo, { attributes: true, attributeFilter: ['hidden', 'attr-3wb0k'] });
+          uploadInfo.incAttribute111('attr-3wb0k');
+          this.ro.observe(uploadInfo);
+        },
+        activate() {
+
+          if (this.activated) return;
+
+          const isPassiveArgSupport = (typeof IntersectionObserver === 'function');
+          // https://caniuse.com/?search=observer
+          // https://caniuse.com/?search=addEventListener%20passive
+
+          if (!isPassiveArgSupport) return;
+
+          this.activated = true;
+
+          this.mouseEnterFn = this.mouseEnterFn.bind(this);
+          this.mouseLeaveFn = this.mouseLeaveFn.bind(this);
+
+          this.moFn = this.moFn.bind(this);
+          this.mo = new MutationObserver(() => {
+            Promise.resolve(lockSet['fullChannelNameOnHoverAttrAsyncLock']).then(this.moFn).catch(console.warn);
+          });
+          this.ro = new ResizeObserver((mutations) => {
+
+            if (Date.now() > this.checkResize) return;
+            for (const mutation of mutations) {
+              const uploadInfo = mutation.target;
+              if (uploadInfo && mutation.contentRect.width > 0 && mutation.contentRect.height > 0) {
+
+                const metaDataElm = uploadInfo.closest('ytd-watch-metadata');
+                if (metaDataElm.classList.contains('tyt-metadata-hover')) {
+
+                  metaDataElm.classList.add('tyt-metadata-hover-resized');
+                }
+
+                break;
+
+              }
+            }
+          });
+          this.promiseReady.resolve();
         }
       }
     }
@@ -2196,6 +2359,8 @@ const executionScript = (communicationKey) => {
         retrieveCE('ytd-live-chat-frame').then(eventMap['ytd-live-chat-frame::defined']).catch(console.warn);
         retrieveCE('ytd-comments').then(eventMap['ytd-comments::defined']).catch(console.warn);
         retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer:defined']).catch(console.warn);
+        retrieveCE('ytd-watch-metadata').then(eventMap['ytd-watch-metadata:defined']).catch(console.warn);
+        
 
       },
 
@@ -2204,7 +2369,7 @@ const executionScript = (communicationKey) => {
         bFixForResizedTabLater = false;
         for (const element of document.querySelectorAll('[io-intersected]')) {
           const cnt = insp(element);
-          if (element instanceof HTMLElement && typeof cnt.calculateCanCollapse === 'function') {
+          if (element instanceof HTMLElement_ && typeof cnt.calculateCanCollapse === 'function') {
             try {
               cnt.calculateCanCollapse(true);
             } catch (e) { }
@@ -2214,7 +2379,7 @@ const executionScript = (communicationKey) => {
         if (!isResize) {
           for (const element of document.querySelectorAll('ytd-video-description-infocards-section-renderer, yt-chip-cloud-renderer, ytd-horizontal-card-list-renderer')) {
             const cnt = insp(element);
-            if (element instanceof HTMLElement && typeof cnt.notifyResize === 'function') {
+            if (element instanceof HTMLElement_ && typeof cnt.notifyResize === 'function') {
               try {
                 cnt.notifyResize();
               } catch (e) { }
@@ -2255,11 +2420,11 @@ const executionScript = (communicationKey) => {
       'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
-        if (hostElement instanceof HTMLElement && hostElement.matches('#columns #related ytd-watch-next-secondary-results-renderer') && !hostElement.matches('#right-tabs ytd-watch-next-secondary-results-renderer, [hidden] ytd-watch-next-secondary-results-renderer')) {
+        if (hostElement instanceof HTMLElement_ && hostElement.matches('#columns #related ytd-watch-next-secondary-results-renderer') && !hostElement.matches('#right-tabs ytd-watch-next-secondary-results-renderer, [hidden] ytd-watch-next-secondary-results-renderer')) {
           elements.related = hostElement.closest('#related');
           hostElement.setAttribute111('tyt-videos-list', '');
         }
@@ -2269,7 +2434,7 @@ const executionScript = (communicationKey) => {
       'ytd-watch-next-secondary-results-renderer::detached': (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::detached');
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2282,7 +2447,7 @@ const executionScript = (communicationKey) => {
 
 
       'settingCommentsVideoId': (hostElement) => {
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         const cnt = insp(hostElement);
         const commentsArea = elements.comments;
         if (commentsArea !== hostElement || hostElement.isConnected !== true || cnt.isAttached !== true || !cnt.data || cnt.hidden !== false) return;
@@ -2379,7 +2544,7 @@ const executionScript = (communicationKey) => {
       'ytd-comments::attached': async (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::attached');
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
@@ -2424,7 +2589,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::detached');
         // console.log(858, hostElement)
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2483,7 +2648,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::attached');
 
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
@@ -2494,7 +2659,7 @@ const executionScript = (communicationKey) => {
           hostElement.setAttribute111('tyt-comments-header-field', '');
         } else {
           const parentNode = hostElement.parentNode;
-          if (parentNode instanceof HTMLElement && parentNode.querySelector('[tyt-comments-header-field]')) {
+          if (parentNode instanceof HTMLElement_ && parentNode.querySelector('[tyt-comments-header-field]')) {
             hostElement.setAttribute111('tyt-comments-header-field', '')
           }
         }
@@ -2505,7 +2670,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::detached');
 
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2527,7 +2692,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-comments-header-renderer::dataChanged': (hostElement) => {
 
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
 
         const ytdFlexyElm = elements.flexy;
 
@@ -2535,7 +2700,7 @@ const executionScript = (communicationKey) => {
         const cnt = insp(hostElement);
         if (cnt && hostElement.closest('#tab-comments') && document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement) {
           b = true;
-        } else if (hostElement instanceof HTMLElement && hostElement.parentNode instanceof HTMLElement && hostElement.parentNode.querySelector('[tyt-comments-header-field]')) {
+        } else if (hostElement instanceof HTMLElement_ && hostElement.parentNode instanceof HTMLElement_ && hostElement.parentNode.querySelector('[tyt-comments-header-field]')) {
           b = true;
         }
         if (b) {
@@ -2637,17 +2802,17 @@ const executionScript = (communicationKey) => {
 
       'ytd-expander::attached': (hostElement) => {
         // if (inPageRearrange) return;
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
         // console.log(4959, hostElement)
         
-        if (hostElement instanceof HTMLElement && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
+        if (hostElement instanceof HTMLElement_ && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
 
           hostElement.setAttribute111('tyt-content-comment-entry', '')
           ioComment.observe(hostElement);
-        } else if (hostElement instanceof HTMLElement && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
+        } else if (hostElement instanceof HTMLElement_ && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
           //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
 
           console.log(5084, 'ytd-expander::attached');
@@ -2672,6 +2837,9 @@ const executionScript = (communicationKey) => {
           }
           infoExpanderElementProvidedPromise.resolve();
           hostElement.setAttribute111('tyt-main-info', '');
+          if(plugin.autoExpandInfoDesc.toUse){
+            plugin.autoExpandInfoDesc.onMainInfoSet(hostElement);
+          }
         }
         // console.log('ytd-expander::attached', hostElement);
 
@@ -2681,7 +2849,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-expander::detached': (hostElement) => {
         // if (inPageRearrange) return;
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2700,9 +2868,13 @@ const executionScript = (communicationKey) => {
 
       'ytd-live-chat-frame::defined': (cProto) => {
 
+        let lastDomAction = 0;
+
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
           cProto.attached = function () {
+            lastDomAction = Date.now();
+            // console.log('chat868-attached', Date.now());
             if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::attached']).catch(console.warn);
             return this.attached498();
           }
@@ -2710,6 +2882,8 @@ const executionScript = (communicationKey) => {
         if (!cProto.detached498 && typeof cProto.detached === 'function') {
           cProto.detached498 = cProto.detached;
           cProto.detached = function () {
+            lastDomAction = Date.now();
+            // console.log('chat868-detached', Date.now());
             if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-live-chat-frame::detached']).catch(console.warn);
             return this.detached498();
           }
@@ -2719,6 +2893,8 @@ const executionScript = (communicationKey) => {
           cProto.urlChanged66 = cProto.urlChanged;
           let ath = 0;
           cProto.urlChangedAsync12 = async function () {
+            const isInLastDomAction = Date.now() - lastDomAction < 400;
+            // console.log('chat868-urlChangedRequest1', Date.now());
             if (ath > 1e9) ath = 9;
             const t = ++ath;
             const chatframe = this.chatframe || (this.$ || 0).chatframe || 0;
@@ -2733,10 +2909,12 @@ const executionScript = (communicationKey) => {
               win = null;
               if (t !== ath) return;
             }
-            setTimeout(()=>{
-              if (t !== ath) return;
-              this.urlChanged66();
-            }, 136);
+            const delay = isInLastDomAction ? 136 : 0;
+            // console.log('chat868-urlChangedRequest2', Date.now());
+            await (delay > 0 ? delayPn(delay) : Promise.resolve());
+            if (t !== ath) return;
+            // console.log('chat868-urlChangedRequest3', Date.now());
+            this.urlChanged66();
           }
           cProto.urlChanged = function () {
             this.urlChangedAsync12();
@@ -2748,7 +2926,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
 
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
@@ -2775,7 +2953,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::detached');
 
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2831,7 +3009,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::attached');
-        if (!(hostElement instanceof HTMLElement) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
@@ -2856,7 +3034,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::detached');
-        if (!(hostElement instanceof HTMLElement) || hostElement.closest('noscript')) return;
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
         // hostElement.__connectedFlg__ = 9;
@@ -2868,6 +3046,50 @@ const executionScript = (communicationKey) => {
           moEgmPanelReadyClearFn();
         }
       },
+
+      'ytd-watch-metadata:defined': (cProto) => {
+
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-watch-metadata::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-watch-metadata::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
+      },
+
+
+
+      'ytd-watch-metadata::attached': (hostElement) => {
+        // if (inPageRearrange) return;
+
+        console.log(5084, 'ytd-watch-metadata::attached');
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== true) return;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
+
+        if(plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
+      },
+
+      'ytd-watch-metadata::detached': (hostElement) => {
+        // if (inPageRearrange) return;
+
+        console.log(5084, 'ytd-watch-metadata::detached');
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== false) return;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
+
+      },
+
 
       '_yt_playerProvided': () => {
         mLoaded.flag |= 4;
@@ -2964,11 +3186,14 @@ const executionScript = (communicationKey) => {
             Promise.resolve(lockSet['removeKeepCommentsScrollerLock']).then(removeKeepCommentsScroller).catch(console.warn);
           } else {
             navigateFinishedPromise.resolve();
-            plugin.minibrowser.enable();
+            if(plugin.minibrowser.toUse) plugin.minibrowser.activate();
+            if(plugin.autoExpandInfoDesc.toUse) plugin.autoExpandInfoDesc.activate();
+            if(plugin.fullChannelNameOnHover.toUse) plugin.fullChannelNameOnHover.activate();
           }
         }
         shouldFixInfo = true;
         Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
+        if(plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
       },
 
       'onceInsertRightTabs': () => {
@@ -3233,7 +3458,7 @@ const executionScript = (communicationKey) => {
       'tabs-btn-click': (evt) => {
 
         const target = evt.target;
-        if (target instanceof HTMLElement && target.classList.contains('tab-btn') && target.hasAttribute000('tyt-tab-content')) {
+        if (target instanceof HTMLElement_ && target.classList.contains('tab-btn') && target.hasAttribute000('tyt-tab-content')) {
 
           evt.preventDefault();
           evt.stopPropagation();
@@ -4321,6 +4546,25 @@ secondary-wrapper ytd-donation-unavailable-renderer{
 }
 
 
+[tyt-no-less-btn] #less{
+  display: none;
+}
+
+.tyt-metadata-hover-resized #purchase-button,
+.tyt-metadata-hover-resized #sponsor-button,
+.tyt-metadata-hover-resized #analytics-button,
+.tyt-metadata-hover-resized #subscribe-button
+{
+  display: none !important;
+}
+
+.tyt-metadata-hover #upload-info {
+  max-width: max-content;
+  min-width: max-content;
+  flex-basis: 100vw;
+  flex-shrink: 0;
+}
+
   `
 };
 (async () => {
@@ -4353,7 +4597,7 @@ secondary-wrapper ytd-donation-unavailable-renderer{
   // }
 
   let button = document.createElement('button');
-  button.setAttribute('onclick', createHTML(textContent));
+  button.setAttribute('onclick', createHTML(textContent)); // max size 10 million bytes
   button.click();
   button = null;
 
