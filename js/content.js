@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.016
+// @version               5.0.017
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -1474,7 +1474,7 @@ const executionScript = (communicationKey) => {
                   attributeInc(node, 'tyt-data-change-counter'); // next macro task
                 }
               }
-              cProto._dataChanged496k = (cnt) => cnt._dataChanged496();
+              cProto._dataChanged496k = ((cnt) => cnt._dataChanged496());
 
             }
 
@@ -1594,12 +1594,14 @@ const executionScript = (communicationKey) => {
           const chatElm = elements.chat;
           const chatCnt = insp(chatElm);
           if (chatCnt && typeof chatCnt.urlChanged === 'function' && secondaryWrapper.contains(chatElm)) {
-            console.log('elements.chat urlChangedAsync12')
+
             // setTimeout(() => chatCnt.urlChanged, 136);
             if (typeof chatCnt.urlChangedAsync12 === 'function') {
+              console.log('elements.chat urlChangedAsync12', 61);
               chatCnt.urlChangedAsync12();
             } else {
-              setTimeout(() => chatCnt.urlChanged, 136);
+              console.log('elements.chat urlChangedAsync12', 62);
+              setTimeout(() => chatCnt.urlChanged(), 136);
             }
           }
         }
