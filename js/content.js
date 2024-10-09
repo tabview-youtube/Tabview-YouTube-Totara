@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.014
+// @version               5.0.015
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -782,7 +782,7 @@ const executionScript = (communicationKey) => {
       Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
     });
 
-    const aoComment = new MutationObserver((mutations) => {
+    const aoComment = new MutationObserver(async (mutations) => {
       const commentsArea = elements.comments;
       const ytdFlexyElm = elements.flexy;
 
@@ -821,15 +821,15 @@ const executionScript = (communicationKey) => {
 
         Promise.resolve(lockSet['checkCommentsShouldBeHiddenLock']).then(eventMap['checkCommentsShouldBeHidden']).catch(console.warn);
 
+        await rightTabsProvidedPromise.then();
+        
+        if (elements.comments !== commentsArea) return;
+        if (commentsArea.isConnected === false) return;
+        console.log(7932, 'comments');
 
-        if (isRightTabsInserted && commentsArea.closest('#tab-comments')) {
-          if (commentsArea.closest('[hidden]')) {
-            // document.querySelector('#tab-comments').classList.add('tab-content-hidden')
-            document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden')
-          } else {
-            // document.querySelector('#tab-comments').classList.remove('tab-content-hidden')
-            document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden')
-          }
+        if (commentsArea.closest('#tab-comments')) {
+          const shouldTabVisible = !commentsArea.closest('[hidden]');
+          document.querySelector('[tyt-tab-content="#tab-comments"]').classList.toggle('tab-btn-hidden', !shouldTabVisible);
         }
 
       }
@@ -2345,6 +2345,17 @@ const executionScript = (communicationKey) => {
     }
 
     let shouldFixInfo = false;
+    const __attachedSymbol__ = Symbol();
+
+    const makeInitAttached = (tag)=>{
+      const inPageRearrange_ = inPageRearrange;
+      inPageRearrange = false;
+      for (const elm of document.querySelectorAll(`${tag}`)) {
+        const cnt = insp(elm) || 0;
+        if (typeof cnt.attached498 === 'function' && !elm[__attachedSymbol__]) Promise.resolve(elm).then(eventMap[`${tag}::attached`]).catch(console.warn);
+      }
+      inPageRearrange = inPageRearrange_;
+    }
 
     const eventMap = {
 
@@ -2358,8 +2369,8 @@ const executionScript = (communicationKey) => {
         retrieveCE('ytd-comments-header-renderer').then(eventMap['ytd-comments-header-renderer::defined']).catch(console.warn);
         retrieveCE('ytd-live-chat-frame').then(eventMap['ytd-live-chat-frame::defined']).catch(console.warn);
         retrieveCE('ytd-comments').then(eventMap['ytd-comments::defined']).catch(console.warn);
-        retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer:defined']).catch(console.warn);
-        retrieveCE('ytd-watch-metadata').then(eventMap['ytd-watch-metadata:defined']).catch(console.warn);
+        retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer::defined']).catch(console.warn);
+        retrieveCE('ytd-watch-metadata').then(eventMap['ytd-watch-metadata::defined']).catch(console.warn);
         
 
       },
@@ -2415,11 +2426,15 @@ const executionScript = (communicationKey) => {
             return this.detached498();
           }
         }
+
+        makeInitAttached('ytd-watch-next-secondary-results-renderer');
+
       },
 
       'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -2514,6 +2529,9 @@ const executionScript = (communicationKey) => {
         //     return this.dataChanged498_();
         //   }
         // }
+
+        makeInitAttached('ytd-comments');
+
       },
 
       'ytd-comments::_dataChanged498': (hostElement) => {
@@ -2544,6 +2562,7 @@ const executionScript = (communicationKey) => {
       'ytd-comments::attached': async (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -2553,36 +2572,31 @@ const executionScript = (communicationKey) => {
         elements.comments = hostElement;
         console.log('ytd-comments::attached')
         Promise.resolve(hostElement).then(eventMap['settingCommentsVideoId']).catch(console.warn);
-        if (isRightTabsInserted) {
-
-          if (elements.comments !== hostElement) return;
-          if (hostElement.isConnected === false) return;
-          // if(!elements.comments || elements.comments.isConnected === false) return;
-          if (hostElement && !hostElement.closest('#right-tabs')) {
-            document.querySelector('#tab-comments').assignChildern111(null, hostElement, null);
-          } else {
-
-            if (elements.comments && elements.comments.closest('#tab-comments') && !elements.comments.closest('[hidden]')) {
-              document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden');
-            } else {
-              document.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
-            }
-
-            //   document.querySelector('#tab-comments').classList.remove('tab-content-hidden')
-            //   document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden')
-
-            Promise.resolve(lockSet['removeKeepCommentsScrollerLock']).then(removeKeepCommentsScroller).catch(console.warn);
-
-          }
-
-
-
-
-        }
 
         aoComment.observe(hostElement, { attributes: true });
         hostElement.setAttribute111('tyt-comments-area', '');
 
+        await rightTabsProvidedPromise.then();
+
+        if (elements.comments !== hostElement) return;
+        if (hostElement.isConnected === false) return;
+        console.log(7932, 'comments');
+
+        // if(!elements.comments || elements.comments.isConnected === false) return;
+        if (hostElement && !hostElement.closest('#right-tabs')) {
+          document.querySelector('#tab-comments').assignChildern111(null, hostElement, null);
+        } else {
+
+          const shouldTabVisible = elements.comments && elements.comments.closest('#tab-comments') && !elements.comments.closest('[hidden]');
+
+          document.querySelector('[tyt-tab-content="#tab-comments"]').classList.toggle('tab-btn-hidden', !shouldTabVisible);
+
+          //   document.querySelector('#tab-comments').classList.remove('tab-content-hidden')
+          //   document.querySelector('[tyt-tab-content="#tab-comments"]').classList.remove('tab-btn-hidden')
+
+          Promise.resolve(lockSet['removeKeepCommentsScrollerLock']).then(removeKeepCommentsScroller).catch(console.warn);
+
+        }
 
       },
       'ytd-comments::detached': (hostElement) => {
@@ -2641,12 +2655,17 @@ const executionScript = (communicationKey) => {
           }
         }
 
+
+        makeInitAttached('ytd-comments-header-renderer');
+
+
       },
 
 
       'ytd-comments-header-renderer::attached': (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
 
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
@@ -2790,6 +2809,8 @@ const executionScript = (communicationKey) => {
 
         */
 
+        makeInitAttached('ytd-expander');
+
       },
 
 
@@ -2800,8 +2821,9 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-expander::attached': (hostElement) => {
+      'ytd-expander::attached': async (hostElement) => {
         // if (inPageRearrange) return;
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -2819,27 +2841,31 @@ const executionScript = (communicationKey) => {
 
           elements.infoExpander = hostElement
           // console.log(1299, hostElement.parentNode, isRightTabsInserted)
-          if (isRightTabsInserted) {
-            const infoExpander = elements.infoExpander;
-            if (infoExpander && !infoExpander.closest('#right-tabs')) {
-              document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
-            } else {
 
-              if (document.querySelector('[tyt-tab-content="#tab-info"]')) {
-                if (elements.infoExpander && elements.infoExpander.closest('#tab-info')) {
-                  document.querySelector('[tyt-tab-content="#tab-info"]').classList.remove('tab-btn-hidden');
-                } else {
-                  document.querySelector('[tyt-tab-content="#tab-info"]').classList.add('tab-btn-hidden');
-                }
-              }
-            }
-            if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
-          }
           infoExpanderElementProvidedPromise.resolve();
           hostElement.setAttribute111('tyt-main-info', '');
           if(plugin.autoExpandInfoDesc.toUse){
             plugin.autoExpandInfoDesc.onMainInfoSet(hostElement);
           }
+
+          await rightTabsProvidedPromise.then(); 
+
+          if (elements.infoExpander !== hostElement) return;
+          if (hostElement.isConnected === false) return;
+          console.log(7932, 'infoExpander');
+
+          const infoExpander = elements.infoExpander;
+          if (infoExpander && !infoExpander.closest('#right-tabs')) {
+            document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+          } else {
+
+            if (document.querySelector('[tyt-tab-content="#tab-info"]')) {
+              const shouldTabVisible = elements.infoExpander && elements.infoExpander.closest('#tab-info');
+              document.querySelector('[tyt-tab-content="#tab-info"]').classList.toggle('tab-btn-hidden', !shouldTabVisible);
+            }
+          }
+          if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+
         }
         // console.log('ytd-expander::attached', hostElement);
 
@@ -2920,11 +2946,15 @@ const executionScript = (communicationKey) => {
             this.urlChangedAsync12();
           }
         }
+
+        makeInitAttached('ytd-live-chat-frame');
+
       },
 
       'ytd-live-chat-frame::attached': (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
 
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
@@ -2973,7 +3003,7 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-engagement-panel-section-list-renderer:defined': (cProto) => {
+      'ytd-engagement-panel-section-list-renderer::defined': (cProto) => {
 
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
@@ -2989,6 +3019,7 @@ const executionScript = (communicationKey) => {
             return this.detached498();
           }
         }
+        makeInitAttached('ytd-engagement-panel-section-list-renderer');
       },
 
       'ytd-engagement-panel-section-list-renderer::bindTarget': (hostElement) => {
@@ -3009,6 +3040,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -3047,7 +3079,7 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-watch-metadata:defined': (cProto) => {
+      'ytd-watch-metadata::defined': (cProto) => {
 
         if (!cProto.attached498 && typeof cProto.attached === 'function') {
           cProto.attached498 = cProto.attached;
@@ -3063,6 +3095,8 @@ const executionScript = (communicationKey) => {
             return this.detached498();
           }
         }
+
+        makeInitAttached('ytd-watch-metadata');
       },
 
 
@@ -3071,6 +3105,7 @@ const executionScript = (communicationKey) => {
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-watch-metadata::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
