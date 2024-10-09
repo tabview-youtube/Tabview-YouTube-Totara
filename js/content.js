@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.017
+// @version               5.0.018
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -921,6 +921,7 @@ const executionScript = (communicationKey) => {
         lastTab = lastPanel = switchingTo
       }
 
+      if (ytdFlexyElm.getAttribute000('tyt-chat') === '') ytdFlexyElm.removeAttribute000('tyt-chat');
       ytdFlexyElm.setAttribute111('tyt-tab', switchingTo);
 
       if (switchingTo) {
@@ -1688,10 +1689,12 @@ const executionScript = (communicationKey) => {
 
     const checkElementExist = (css, exclude) => {
       for (const p of document.querySelectorAll(css)) {
-        if (!p.closest(exclude)) return true;
+        if (!p.closest(exclude)) return p;
       }
-      return false;
+      return null;
     }
+
+    let fixInitialTabStateK = 0;
 
     const { handleNavigateFactory } = (() => {
 
@@ -3330,7 +3333,8 @@ const executionScript = (communicationKey) => {
           ao.observe(ytdFlexyElm, { attributes: true });
           Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
 
-          delayPn(1).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
+
+          Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
         }
 
       },
@@ -3370,11 +3374,16 @@ const executionScript = (communicationKey) => {
         const p = tabAStatus;
         const q = calculationFn(p, 3 | 4 | 8 | 16 | 32 | 64);
 
+        let resetChatForNewPage = false;
         if (p !== q) {
           console.log(388, p, q)
           let actioned = false;
           if ((p & 8) === 0 && (q & 8) === 8) {
             lastPanel = 'chat'
+          } else if ((((p & 4) == 4 && (q & 4) == 0 && (q & 8) === 0) || ((p & 8) == 8 && (q & 4) == 0 && (q & 8) === 0)) && lastPanel === 'chat') {
+            // 24 -> 16 = -8; 'd'
+            lastPanel = (lastTab || '');
+            resetChatForNewPage = true;
           }
           tabAStatus = q;
 
@@ -3484,10 +3493,16 @@ const executionScript = (communicationKey) => {
           if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16 | 0 | 0)) {
             console.log(388, 'd')
             if (lastPanel === 'chat') {
+              console.log(388, 'd1')
               ytBtnExpandChat()
               actioned = true;
             } else if (lastTab) {
+              console.log(388, 'd2')
               switchToTab(lastTab)
+              actioned = true;
+            } else if (resetChatForNewPage) {
+              console.log(388, 'd3')
+              Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
               actioned = true;
             }
           }
@@ -3507,22 +3522,41 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'fixInitialTabStateFn': () => {
+      'fixInitialTabStateFn': async (lockId) => {
+        // console.log('fixInitialTabStateFn 0a');
+        if (lockGet['fixInitialTabStateLock'] !== lockId) return;
+        // console.log('fixInitialTabStateFn 0b');
+        const delayTime = fixInitialTabStateK > 0 ? 200 : 1;
+        await delayPn(delayTime);
+        if (lockGet['fixInitialTabStateLock'] !== lockId) return;
+        // console.log('fixInitialTabStateFn 0c');
+        const kTab = document.querySelector('[tyt-tab]');
+        const qTab = (!kTab || kTab.getAttribute('tyt-tab') === '') ? checkElementExist('ytd-watch-flexy[is-two-columns_]', '[hidden]') : null;
         if (checkElementExist('ytd-live-chat-frame#chat', '[hidden], [collapsed]')) {
+          console.log('fixInitialTabStateFn 1a');
           switchToTab(null);
           if (checkElementExist('ytd-watch-flexy[theater]', '[hidden]')) {
             ytBtnCollapseChat();
           }
-        } else if (checkElementExist('ytd-watch-flexy[is-two-columns_]:not([theater])', '[hidden]') && !document.querySelector('[tyt-tab]')) {
-          let btn0 = document.querySelector('.tab-btn-visible') // or default button
-          if (btn0) {
-            switchToTab(btn0);
+        } else if (qTab) {
+          const hasTheater = qTab.hasAttribute('theater');
+          if (!hasTheater) {
+            console.log('fixInitialTabStateFn 1b');
+            const btn0 = document.querySelector('.tab-btn-visible') // or default button
+            if (btn0) {
+              switchToTab(btn0);
+            } else {
+              switchToTab(null);
+            }
           } else {
+            console.log('fixInitialTabStateFn 1c');
             switchToTab(null);
           }
-        } else if (checkElementExist('ytd-watch-flexy[is-two-columns_][theater]', '[hidden]') && !document.querySelector('[tyt-tab]')) {
-          switchToTab(null);
+        } else {
+          console.log('fixInitialTabStateFn 1z');
         }
+        // console.log('fixInitialTabStateFn 0d');
+        fixInitialTabStateK++;
       },
 
       'tabs-btn-click': (evt) => {
