@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.015
+// @version               5.0.016
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -765,7 +765,9 @@ const executionScript = (communicationKey) => {
       const ytdFlexyElm = elements.flexy;
       // console.log(1882, chatElm, ytdFlexyElm)
       if (chatElm && ytdFlexyElm) {
-        if (chatElm.hasAttribute000('collapsed')) {
+
+        const isChatCollapsed = chatElm.hasAttribute000('collapsed');
+        if (isChatCollapsed) {
 
           ytdFlexyElm.setAttribute111('tyt-chat-collapsed', '')
         } else {
@@ -773,7 +775,7 @@ const executionScript = (communicationKey) => {
           ytdFlexyElm.removeAttribute000('tyt-chat-collapsed')
         }
 
-        ytdFlexyElm.setAttribute111('tyt-chat', chatElm.hasAttribute000('collapsed') ? '-' : '+');
+        ytdFlexyElm.setAttribute111('tyt-chat', isChatCollapsed ? '-' : '+');
 
       }
     };
@@ -821,7 +823,10 @@ const executionScript = (communicationKey) => {
 
         Promise.resolve(lockSet['checkCommentsShouldBeHiddenLock']).then(eventMap['checkCommentsShouldBeHidden']).catch(console.warn);
 
+
+        const lockId = lockSet['rightTabReadyLock01'];
         await rightTabsProvidedPromise.then();
+        if (lockGet['rightTabReadyLock01'] !== lockId) return;
         
         if (elements.comments !== commentsArea) return;
         if (commentsArea.isConnected === false) return;
@@ -2357,6 +2362,19 @@ const executionScript = (communicationKey) => {
       inPageRearrange = inPageRearrange_;
     }
 
+    const getGeneralChatElement = async () => {
+      for (let i = 2; i-- > 0;) {
+        let t = document.querySelector('#columns.style-scope.ytd-watch-flexy ytd-live-chat-frame#chat');
+        if (t instanceof Element) return t;
+        if (i > 0) {
+          // try later
+          console.log('ytd-live-chat-frame::attached - delayPn(200)')
+          await delayPn(200);
+        }
+      }
+      return null;
+    }
+
     const eventMap = {
 
       'ceHack': () => {
@@ -2576,7 +2594,9 @@ const executionScript = (communicationKey) => {
         aoComment.observe(hostElement, { attributes: true });
         hostElement.setAttribute111('tyt-comments-area', '');
 
+        const lockId = lockSet['rightTabReadyLock02'];
         await rightTabsProvidedPromise.then();
+        if (lockGet['rightTabReadyLock02'] !== lockId) return;
 
         if (elements.comments !== hostElement) return;
         if (hostElement.isConnected === false) return;
@@ -2790,7 +2810,7 @@ const executionScript = (communicationKey) => {
 
         }
 
-        if(!cProto.childrenChanged498 && typeof cProto.childrenChanged === 'function'){
+        if (!cProto.childrenChanged498 && typeof cProto.childrenChanged === 'function') {
           cProto.childrenChanged498 = cProto.childrenChanged;
           cProto.childrenChanged = function () {
             Promise.resolve(this.hostElement).then(eventMap['ytd-expander::childrenChanged']).catch(console.warn);
@@ -2844,11 +2864,13 @@ const executionScript = (communicationKey) => {
 
           infoExpanderElementProvidedPromise.resolve();
           hostElement.setAttribute111('tyt-main-info', '');
-          if(plugin.autoExpandInfoDesc.toUse){
+          if (plugin.autoExpandInfoDesc.toUse) {
             plugin.autoExpandInfoDesc.onMainInfoSet(hostElement);
           }
 
-          await rightTabsProvidedPromise.then(); 
+          const lockId = lockSet['rightTabReadyLock03'];
+          await rightTabsProvidedPromise.then();
+          if (lockGet['rightTabReadyLock03'] !== lockId) return;
 
           if (elements.infoExpander !== hostElement) return;
           if (hostElement.isConnected === false) return;
@@ -2951,7 +2973,7 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-live-chat-frame::attached': (hostElement) => {
+      'ytd-live-chat-frame::attached': async (hostElement) => {
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -2962,11 +2984,16 @@ const executionScript = (communicationKey) => {
         // hostElement.__connectedFlg__ = 5;
         if (!hostElement || hostElement.id !== 'chat') return;
         console.log('ytd-live-chat-frame::attached')
-        const chatElem = document.querySelector('#columns.style-scope.ytd-watch-flexy ytd-live-chat-frame#chat');
+
+        const lockId = lockSet['ytdLiveAttachedLock'];
+        const chatElem = await getGeneralChatElement();
+        if (lockGet['ytdLiveAttachedLock'] !== lockId) return;
+
         if (chatElem === hostElement) {
           elements.chat = chatElem;
-          aoChat.observe(hostElement, { attributes: true });
-          hostElement.setAttribute111('tyt-active-chat-frame', '');
+          aoChat.observe(chatElem, { attributes: true });
+          const isFlexyReady = (elements.flexy instanceof Element);
+          chatElem.setAttribute111('tyt-active-chat-frame', isFlexyReady ? 'CF': 'C');
 
           const chatContainer = chatElem ? (chatElem.closest('#chat-container') || chatElem) : null;
           if (chatContainer && !chatContainer.hasAttribute000('tyt-chat-container')) {
@@ -2976,6 +3003,8 @@ const executionScript = (communicationKey) => {
             chatContainer.setAttribute111('tyt-chat-container', '')
           }
           Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
+        } else {
+          console.log('Issue found in ytd-live-chat-frame::attached', chatElem, hostElement);
         }
       },
 
@@ -3111,7 +3140,7 @@ const executionScript = (communicationKey) => {
         // if (hostElement.__connectedFlg__ !== 4) return;
         // hostElement.__connectedFlg__ = 5;
 
-        if(plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
+        if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
       },
 
       'ytd-watch-metadata::detached': (hostElement) => {
@@ -3221,14 +3250,18 @@ const executionScript = (communicationKey) => {
             Promise.resolve(lockSet['removeKeepCommentsScrollerLock']).then(removeKeepCommentsScroller).catch(console.warn);
           } else {
             navigateFinishedPromise.resolve();
-            if(plugin.minibrowser.toUse) plugin.minibrowser.activate();
-            if(plugin.autoExpandInfoDesc.toUse) plugin.autoExpandInfoDesc.activate();
-            if(plugin.fullChannelNameOnHover.toUse) plugin.fullChannelNameOnHover.activate();
+            if (plugin.minibrowser.toUse) plugin.minibrowser.activate();
+            if (plugin.autoExpandInfoDesc.toUse) plugin.autoExpandInfoDesc.activate();
+            if (plugin.fullChannelNameOnHover.toUse) plugin.fullChannelNameOnHover.activate();
+          }
+          const chat = elements.chat;
+          if (chat instanceof Element) {
+            chat.setAttribute111('tyt-active-chat-frame', 'CF'); // chat and flexy ready
           }
         }
         shouldFixInfo = true;
         Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
-        if(plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
+        if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
       },
 
       'onceInsertRightTabs': () => {
@@ -4598,6 +4631,26 @@ secondary-wrapper ytd-donation-unavailable-renderer{
   min-width: max-content;
   flex-basis: 100vw;
   flex-shrink: 0;
+}
+
+#tab-info ytd-structured-description-playlist-lockup-renderer[collections] #playlist-thumbnail.style-scope.ytd-structured-description-playlist-lockup-renderer {
+    max-width: 100%;
+}
+
+#tab-info ytd-structured-description-playlist-lockup-renderer[collections] #lockup-container.ytd-structured-description-playlist-lockup-renderer{
+    padding: 1px;
+}
+
+#tab-info ytd-structured-description-playlist-lockup-renderer[collections] #thumbnail.ytd-structured-description-playlist-lockup-renderer {
+    outline: 1px solid rgba(127, 127, 127, 0.5);
+}
+
+/* minor spacing fix */
+
+/* https://www.youtube.com/watch?v=wAcY2fx0UWQ */
+ytd-live-chat-frame#chat[collapsed] ytd-message-renderer ~ #show-hide-button.ytd-live-chat-frame>ytd-toggle-button-renderer.ytd-live-chat-frame
+{
+  padding:0;
 }
 
   `
