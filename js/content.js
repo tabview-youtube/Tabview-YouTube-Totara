@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.018
+// @version               5.0.019
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -217,7 +217,7 @@ const executionScript = (communicationKey) => {
 
   try {
 
-    executionFinished = 0;
+    let executionFinished = 0;
 
     if (typeof CustomElementRegistry === 'undefined') return;
     if (CustomElementRegistry.prototype.define000) return;
@@ -2959,7 +2959,6 @@ const executionScript = (communicationKey) => {
                 win && await (new Promise(r => win.setTimeout(r)).catch(console.warn));
                 win = null;
               } catch (e) { }
-              win = null;
               if (t !== ath) return;
             }
             const delay = isInLastDomAction ? 136 : 0;
