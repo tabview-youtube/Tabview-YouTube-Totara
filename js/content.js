@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.020
+// @version               5.0.021
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3377,7 +3377,7 @@ const executionScript = (communicationKey) => {
         const p = tabAStatus;
         const q = calculationFn(p, 3 | 4 | 8 | 16 | 32 | 64);
 
-        let resetChatForNewPage = false;
+        let resetForChatDisappeared = false;
         if (p !== q) {
           console.log(388, p, q)
           let actioned = false;
@@ -3386,7 +3386,11 @@ const executionScript = (communicationKey) => {
           } else if ((((p & 4) == 4 && (q & 4) == 0 && (q & 8) === 0) || ((p & 8) == 8 && (q & 4) == 0 && (q & 8) === 0)) && lastPanel === 'chat') {
             // 24 -> 16 = -8; 'd'
             lastPanel = (lastTab || '');
-            resetChatForNewPage = true;
+            resetForChatDisappeared = true;
+          } else if ((p & (4 | 8)) === 8 && (q & (4 | 8)) === 4 && lastPanel === 'chat') {
+            // click close
+            lastPanel = (lastTab || '');
+            resetForChatDisappeared = true;
           }
           tabAStatus = q;
 
@@ -3503,7 +3507,8 @@ const executionScript = (communicationKey) => {
               console.log(388, 'd2')
               switchToTab(lastTab)
               actioned = true;
-            } else if (resetChatForNewPage) {
+            } else if (resetForChatDisappeared) {
+              // if lastTab is undefined
               console.log(388, 'd3')
               Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
               actioned = true;
