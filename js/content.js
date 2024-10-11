@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.019
+// @version               5.0.020
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -1599,7 +1599,7 @@ const executionScript = (communicationKey) => {
             // setTimeout(() => chatCnt.urlChanged, 136);
             if (typeof chatCnt.urlChangedAsync12 === 'function') {
               console.log('elements.chat urlChangedAsync12', 61);
-              chatCnt.urlChangedAsync12();
+              chatCnt.urlChanged();
             } else {
               console.log('elements.chat urlChangedAsync12', 62);
               setTimeout(() => chatCnt.urlChanged(), 136);
@@ -2969,7 +2969,11 @@ const executionScript = (communicationKey) => {
             this.urlChanged66();
           }
           cProto.urlChanged = function () {
-            this.urlChangedAsync12();
+            if (document.visibilityState === 'hidden') {
+              this.urlChanged66();
+            } else {
+              this.urlChangedAsync12();
+            }
           }
         }
 
