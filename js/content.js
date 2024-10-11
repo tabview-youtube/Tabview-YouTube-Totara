@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.021
+// @version               5.0.022
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -780,8 +780,26 @@ const executionScript = (communicationKey) => {
       }
     };
 
+    const aoInfoAttrChangeFn = async (lockId) => {
+      if (lockGet['aoInfoAttrAsyncLock'] !== lockId) return;
+
+      const infoElm = elements.infoExpander;
+      const ytdFlexyElm = elements.flexy;
+      // console.log(1882, chatElm, ytdFlexyElm)
+      if (infoElm && ytdFlexyElm) {
+        const videoId = infoElm.getAttribute000('tyt-video-id');
+        const displayFor = infoElm.getAttribute000('tyt-display-for');
+        const b = videoId && displayFor && videoId === displayFor;
+        infoElm.classList.toggle('tyt-info-invisible', !b);
+      }
+    };
+
     const aoChat = new MutationObserver(()=>{
       Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
+    });
+
+    const aoInfo = new MutationObserver(()=>{
+      Promise.resolve(lockSet['aoInfoAttrAsyncLock']).then(aoInfoAttrChangeFn).catch(console.warn);
     });
 
     const aoComment = new MutationObserver(async (mutations) => {
@@ -1360,16 +1378,15 @@ const executionScript = (communicationKey) => {
       if (lockGet['infoFixLock'] !== lockId) return;
       console.log('((infoFix))')
       const infoExpander = elements.infoExpander;
+      const infoContainer = (infoExpander ? infoExpander.parentNode : null) || document.querySelector('#tab-info');
       const ytdFlexyElm = elements.flexy;
-      if (!infoExpander || !ytdFlexyElm) return;
+      if (!infoContainer || !ytdFlexyElm) return;
       // console.log(386, infoExpander, infoExpander.matches('#tab-info > [class]'))
-      if (!infoExpander.matches('#tab-info > [class]')) return;
+      if (infoExpander && !infoExpander.matches('#tab-info > [class]')) return;
       // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"], ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer')].filter(elm=>{
       //   if(elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
       //    return true;
       // });
-
-
 
       const requireElements = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"] > *, ytd-watch-metadata.ytd-watch-flexy #extra-content > *')].filter(elm => {
         return typeof elm.is == 'string'
@@ -1382,6 +1399,8 @@ const executionScript = (communicationKey) => {
         }
       }).filter(elm => !!elm && typeof elm.is === 'string');
       // console.log(9162, requireElements)
+
+      // if (!infoExpander && !requireElements.length) return;
 
       const source = requireElements.map(entry => {
         const inst = insp(entry);
@@ -1406,7 +1425,7 @@ const executionScript = (communicationKey) => {
 
       let requiredUpdate = false;
       const mirrorElmSet = new Set();
-      const targetParent = infoExpander.parentNode;
+      const targetParent = infoContainer;
       for (const { data, tag: tag, elm: s } of source) {
 
         let mirrorNode = mirrorNodeWS.get(s)
@@ -1484,7 +1503,6 @@ const executionScript = (communicationKey) => {
 
           if (!cProto._dataChanged496) {
 
-
             new MutationObserver(monitorDataChangedByDOMMutation.bind(mirrorNode[__j5744__])).observe(s, { attributes: true, childList: true, subtree: true });
 
           }
@@ -1522,12 +1540,11 @@ const executionScript = (communicationKey) => {
       const mirroElmArr = [...mirrorElmSet];
       mirrorElmSet.clear();
 
-
       if (!requiredUpdate) {
+        let e = infoExpander ? -1 : 0;
         // DOM Tree Check
-        let e = 0;
         for (let n = targetParent.firstChild; n instanceof Node; n = n.nextSibling) {
-          let target = e === 0 ? infoExpander : mirroElmArr[e - 1];
+          let target = e < 0 ? infoExpander : mirroElmArr[e];
           e++;
           if (n !== target) {
             // target can be undefined if index overflow
@@ -1539,7 +1556,11 @@ const executionScript = (communicationKey) => {
       }
 
       if (requiredUpdate) {
-        targetParent.assignChildern111(null, infoExpander, mirroElmArr);
+        if (infoExpander) {
+          targetParent.assignChildern111(null, infoExpander, mirroElmArr);
+        } else {
+          targetParent.replaceChildren000(...mirroElmArr);
+        }
         for (const mirrorElm of mirroElmArr) {
           // trigger data assignment and record refresh count by manual update
           const j = attributeInc(mirrorElm, 'tyt-clone-refresh-count');
@@ -2184,6 +2205,16 @@ const executionScript = (communicationKey) => {
     })();
 
     let inPageRearrange = false;
+    let tmpLastVideoId = '';
+
+    const getCurrentVideoId = ()=>{
+      const ytdFlexyElm = elements.flexy;
+      const ytdFlexyCnt = insp(ytdFlexyElm);
+      if(ytdFlexyCnt && typeof ytdFlexyCnt.videoId === 'string') return ytdFlexyCnt.videoId;
+      if(ytdFlexyElm && typeof ytdFlexyElm.videoId === 'string') return ytdFlexyElm.videoId;
+      console.log('video id not found');
+      return '';
+    }
 
     const plugin = {
       'minibrowser': {
@@ -2354,7 +2385,7 @@ const executionScript = (communicationKey) => {
       }
     }
 
-    let shouldFixInfo = false;
+    // let shouldFixInfo = false;
     const __attachedSymbol__ = Symbol();
 
     const makeInitAttached = (tag)=>{
@@ -2847,6 +2878,8 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-expander::attached': async (hostElement) => {
+
+        console.log(3882)
         // if (inPageRearrange) return;
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
@@ -2864,7 +2897,7 @@ const executionScript = (communicationKey) => {
 
           console.log(5084, 'ytd-expander::attached');
 
-          elements.infoExpander = hostElement
+          elements.infoExpander = hostElement;
           // console.log(1299, hostElement.parentNode, isRightTabsInserted)
 
           infoExpanderElementProvidedPromise.resolve();
@@ -2882,6 +2915,14 @@ const executionScript = (communicationKey) => {
           console.log(7932, 'infoExpander');
 
           const infoExpander = elements.infoExpander;
+          const videoId = getCurrentVideoId();
+          // const dummy = document.createElement('noscript');
+          // dummy.setAttribute000('id', 'info-expander-vid');
+          // dummy.setAttribute000('video-id', getCurrentVideoId());
+          // infoExpander.insertBefore000(dummy, infoExpander.firstChild);
+          aoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['tyt-display-for', 'tyt-video-id'] });
+          infoExpander.setAttribute111('tyt-video-id', videoId);
+          infoExpander.setAttribute111('tyt-display-for', videoId);
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
             document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
           } else {
@@ -2891,7 +2932,7 @@ const executionScript = (communicationKey) => {
               document.querySelector('[tyt-tab-content="#tab-info"]').classList.toggle('tab-btn-hidden', !shouldTabVisible);
             }
           }
-          if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+          // if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
 
         }
         // console.log('ytd-expander::attached', hostElement);
@@ -3215,10 +3256,10 @@ const executionScript = (communicationKey) => {
         if (infoExpander && infoExpander.isConnected && !infoExpander.closest('#right-tabs #tab-info')) {
           document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
         } else {
-          if (infoExpander && ytdFlexyElm && shouldFixInfo) {
-            shouldFixInfo = false;
-            Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
-          }
+          // if (infoExpander && ytdFlexyElm && shouldFixInfo) {
+          //   shouldFixInfo = false;
+          //   Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+          // }
         }
 
         const commentsArea = elements.comments;
@@ -3247,7 +3288,7 @@ const executionScript = (communicationKey) => {
         pageType = ytdAppCnt ? (ytdAppCnt.data || 0).page : null;
 
         if (!document.querySelector('ytd-watch-flexy #player')) return;
-        shouldFixInfo = true;
+        // shouldFixInfo = true;
         console.log('yt-navigate-finish')
         const flexyArr = [...document.querySelectorAll('ytd-watch-flexy')].filter(e => !e.closest('[hidden]') && e.querySelector('#player'));
         if (flexyArr.length === 1) {
@@ -3267,7 +3308,7 @@ const executionScript = (communicationKey) => {
             chat.setAttribute111('tyt-active-chat-frame', 'CF'); // chat and flexy ready
           }
         }
-        shouldFixInfo = true;
+        // shouldFixInfo = true;
         Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
         if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
       },
@@ -3332,12 +3373,14 @@ const executionScript = (communicationKey) => {
           roRightTabs.disconnect();
           roRightTabs.observe(rightTabs);
           const ytdFlexyElm = elements.flexy;
-          const ao = new MutationObserver(eventMap['aoFlexyFn']);
-          ao.observe(ytdFlexyElm, { attributes: true });
-          Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
-
+          const aoFlexy = new MutationObserver(eventMap['aoFlexyFn']);
+          aoFlexy.observe(ytdFlexyElm, { attributes: true });
+          // Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
 
           Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
+
+          ytdFlexyElm.incAttribute111('attr-7qlsy'); // tabsStatusCorrectionLock and video-id
+          
         }
 
       },
@@ -3349,6 +3392,12 @@ const executionScript = (communicationKey) => {
         Promise.resolve(lockSet['refreshSecondaryInnerLock']).then(eventMap['refreshSecondaryInner']).catch(console.warn);
 
         Promise.resolve(lockSet['tabsStatusCorrectionLock']).then(eventMap['tabsStatusCorrection']).catch(console.warn);
+
+        const videoId = getCurrentVideoId();
+        if (videoId !== tmpLastVideoId) {
+          tmpLastVideoId = videoId;
+          Promise.resolve(lockSet['updateOnVideoIdChangedLock']).then(eventMap['updateOnVideoIdChanged']).catch(console.warn);
+        }
 
       },
 
@@ -3528,6 +3577,17 @@ const executionScript = (communicationKey) => {
           }
         }
 
+      },
+
+      'updateOnVideoIdChanged': (lockId) => {
+        if (lockId !== lockGet['updateOnVideoIdChangedLock']) return;
+        const videoId = tmpLastVideoId;
+        if (!videoId) return;
+        const infoExpander = elements.infoExpander;
+        if (infoExpander) {
+          infoExpander.setAttribute111('tyt-video-id', videoId);
+        }
+        Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
       },
 
       'fixInitialTabStateFn': async (lockId) => {
@@ -4695,6 +4755,10 @@ secondary-wrapper ytd-donation-unavailable-renderer{
 ytd-live-chat-frame#chat[collapsed] ytd-message-renderer ~ #show-hide-button.ytd-live-chat-frame>ytd-toggle-button-renderer.ytd-live-chat-frame
 {
   padding:0;
+}
+
+.tyt-info-invisible {
+display: none;
 }
 
   `
