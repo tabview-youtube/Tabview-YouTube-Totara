@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.023
+// @version               5.0.024
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -794,12 +794,32 @@ const executionScript = (communicationKey) => {
       }
     };
 
+    const zoInfoAttrChangeFn = async (lockId) => {
+      if (lockGet['zoInfoAttrAsyncLock'] !== lockId) return;
+      const infoElm = elements.infoExpander;
+      const ytdFlexyElm = elements.flexy;
+      // console.log(1882, chatElm, ytdFlexyElm)
+      if (infoElm && ytdFlexyElm) {
+        if (ytdFlexyElm.hasAttribute000('hidden')) {
+          infoElm.setAttribute111('tyt-video-id', '');
+        } else {
+          const videoId = getCurrentVideoId();
+          infoElm.setAttribute111('tyt-video-id', videoId);
+          infoElm.setAttribute111('tyt-display-for', videoId);
+        }
+      }
+    };
+
     const aoChat = new MutationObserver(()=>{
       Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
     });
 
     const aoInfo = new MutationObserver(()=>{
       Promise.resolve(lockSet['aoInfoAttrAsyncLock']).then(aoInfoAttrChangeFn).catch(console.warn);
+    });
+
+    const zoInfo = new MutationObserver(()=>{
+      Promise.resolve(lockSet['zoInfoAttrAsyncLock']).then(zoInfoAttrChangeFn).catch(console.warn);
     });
 
     const aoComment = new MutationObserver(async (mutations) => {
@@ -2946,7 +2966,6 @@ const executionScript = (communicationKey) => {
           console.log(7932, 'infoExpander');
 
           const infoExpander = elements.infoExpander;
-          const videoId = getCurrentVideoId();
           
           // console.log(5438,infoExpander, qt);
           
@@ -2955,10 +2974,9 @@ const executionScript = (communicationKey) => {
           // dummy.setAttribute000('video-id', getCurrentVideoId());
           // infoExpander.insertBefore000(dummy, infoExpander.firstChild);
 
-
           aoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['tyt-display-for', 'tyt-video-id'] });
-          infoExpander.setAttribute111('tyt-video-id', videoId);
-          infoExpander.setAttribute111('tyt-display-for', videoId);
+          zoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['hidden', 'attr-w20ts'], childList: true, subtree: true});
+          
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
             document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
           } else {
@@ -2969,6 +2987,8 @@ const executionScript = (communicationKey) => {
             }
           }
           // if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+
+          zoInfo.incAttribute111('attr-w20ts');
 
         }
         // console.log('ytd-expander::attached', hostElement);
@@ -3645,7 +3665,7 @@ const executionScript = (communicationKey) => {
         const videoId = tmpLastVideoId;
         if (!videoId) return;
         const infoExpander = elements.infoExpander;
-        if (infoExpander) {
+        if (infoExpander && !infoExpander.hasAttribute000('hidden')) {
           infoExpander.setAttribute111('tyt-video-id', videoId);
         }
         Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
