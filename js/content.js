@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.022
+// @version               5.0.023
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -2486,6 +2486,14 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -2614,6 +2622,14 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-comments::attached': async (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -2719,6 +2735,14 @@ const executionScript = (communicationKey) => {
 
 
       'ytd-comments-header-renderer::attached': (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -2879,6 +2903,13 @@ const executionScript = (communicationKey) => {
 
       'ytd-expander::attached': async (hostElement) => {
 
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         console.log(3882)
         // if (inPageRearrange) return;
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -2916,10 +2947,15 @@ const executionScript = (communicationKey) => {
 
           const infoExpander = elements.infoExpander;
           const videoId = getCurrentVideoId();
+          
+          // console.log(5438,infoExpander, qt);
+          
           // const dummy = document.createElement('noscript');
           // dummy.setAttribute000('id', 'info-expander-vid');
           // dummy.setAttribute000('video-id', getCurrentVideoId());
           // infoExpander.insertBefore000(dummy, infoExpander.firstChild);
+
+
           aoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['tyt-display-for', 'tyt-video-id'] });
           infoExpander.setAttribute111('tyt-video-id', videoId);
           infoExpander.setAttribute111('tyt-display-for', videoId);
@@ -3023,6 +3059,14 @@ const executionScript = (communicationKey) => {
       },
 
       'ytd-live-chat-frame::attached': async (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
@@ -3115,6 +3159,14 @@ const executionScript = (communicationKey) => {
 
 
       'ytd-engagement-panel-section-list-renderer::attached': (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-engagement-panel-section-list-renderer::attached');
@@ -3180,6 +3232,14 @@ const executionScript = (communicationKey) => {
 
 
       'ytd-watch-metadata::attached': (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
         // if (inPageRearrange) return;
 
         console.log(5084, 'ytd-watch-metadata::attached');
@@ -3307,10 +3367,11 @@ const executionScript = (communicationKey) => {
           if (chat instanceof Element) {
             chat.setAttribute111('tyt-active-chat-frame', 'CF'); // chat and flexy ready
           }
+          const infoExpander = elements.infoExpander;
+          if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+          Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
+          if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
         }
-        // shouldFixInfo = true;
-        Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
-        if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
       },
 
       'onceInsertRightTabs': () => {
