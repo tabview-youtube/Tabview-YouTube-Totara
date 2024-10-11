@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.024
+// @version               5.0.025
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -810,6 +810,25 @@ const executionScript = (communicationKey) => {
       }
     };
 
+    const aoPlayListAttrChangeFn = async (lockId) => {
+      if (lockGet['aoPlayListAttrAsyncLock'] !== lockId) return;
+
+      const playlistElm = elements.playlist;
+      const ytdFlexyElm = elements.flexy;
+      // console.log(1882, chatElm, ytdFlexyElm)
+      if (playlistElm && ytdFlexyElm) {
+        if (playlistElm.hasAttribute000('collapsed')) {
+          ytdFlexyElm.removeAttribute000('tyt-playlist-expanded')
+        } else {
+
+          ytdFlexyElm.setAttribute111('tyt-playlist-expanded', '')
+        }
+      }else if(ytdFlexyElm){
+
+        ytdFlexyElm.removeAttribute000('tyt-playlist-expanded')
+      }
+    };
+
     const aoChat = new MutationObserver(()=>{
       Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
     });
@@ -820,6 +839,10 @@ const executionScript = (communicationKey) => {
 
     const zoInfo = new MutationObserver(()=>{
       Promise.resolve(lockSet['zoInfoAttrAsyncLock']).then(zoInfoAttrChangeFn).catch(console.warn);
+    });
+
+    const aoPlayList = new MutationObserver(()=>{
+      Promise.resolve(lockSet['aoPlayListAttrAsyncLock']).then(aoPlayListAttrChangeFn).catch(console.warn);
     });
 
     const aoComment = new MutationObserver(async (mutations) => {
@@ -1002,6 +1025,11 @@ const executionScript = (communicationKey) => {
         r |= 64;
         if (!document.fullscreenElement) r -= 64;
       }
+
+      if (flag & 128) {
+        r |= 128;
+        if (!ytdFlexyElm.hasAttribute000('tyt-playlist-expanded')) r -= 128;
+      }
       return r;
 
     }
@@ -1145,6 +1173,22 @@ const executionScript = (communicationKey) => {
         }
       }
       ytBtnEgmPanelCore(actions);
+    }
+
+
+    function ytBtnOpenPlaylist() {
+
+      const cnt = insp(elements.playlist);
+      if (cnt && typeof cnt.collapsed === 'boolean') {
+        cnt.collapsed = false;
+      }
+    }
+    function ytBtnClosePlaylist() {
+
+      const cnt = insp(elements.playlist);
+      if (cnt && typeof cnt.collapsed === 'boolean') {
+        cnt.collapsed = true;
+      }
     }
 
     const updateChatLocation498 = function () {
@@ -2445,7 +2489,7 @@ const executionScript = (communicationKey) => {
         retrieveCE('ytd-comments').then(eventMap['ytd-comments::defined']).catch(console.warn);
         retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer::defined']).catch(console.warn);
         retrieveCE('ytd-watch-metadata').then(eventMap['ytd-watch-metadata::defined']).catch(console.warn);
-        
+        retrieveCE('ytd-playlist-panel-renderer').then(eventMap['ytd-playlist-panel-renderer::defined']).catch(console.warn);
 
       },
 
@@ -2988,7 +3032,7 @@ const executionScript = (communicationKey) => {
           }
           // if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
 
-          zoInfo.incAttribute111('attr-w20ts');
+          infoExpander.incAttribute111('attr-w20ts');
 
         }
         // console.log('ytd-expander::attached', hostElement);
@@ -3284,6 +3328,70 @@ const executionScript = (communicationKey) => {
       },
 
 
+
+      'ytd-playlist-panel-renderer::defined': (cProto) => {
+
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-playlist-panel-renderer::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-playlist-panel-renderer::detached']).catch(console.warn);
+            return this.detached498();
+          }
+        }
+
+        makeInitAttached('ytd-playlist-panel-renderer');
+      },
+
+
+
+      'ytd-playlist-panel-renderer::attached': (hostElement) => {
+
+        if (hostElement instanceof HTMLElement) {
+          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+          if (!hasFlexyParent) return;
+          const currentFlexy = elements.flexy;
+          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+        }
+
+        // if (inPageRearrange) return;
+
+        console.log(5084, 'ytd-playlist-panel-renderer::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== true) return;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
+
+        elements.playlist = hostElement;
+
+        aoPlayList.observe(hostElement,  { attributes: true, attributeFilter: ['hidden', 'collapsed', 'attr-1y6nu'] });
+        hostElement.incAttribute111('attr-1y6nu')
+
+
+      },
+
+      'ytd-playlist-panel-renderer::detached': (hostElement) => {
+        // if (inPageRearrange) return;
+
+        console.log(5084, 'ytd-playlist-panel-renderer::detached');
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== false) return;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
+
+      },
+
+
+
+
+
       '_yt_playerProvided': () => {
         mLoaded.flag |= 4;
         document.documentElement.setAttribute111('tabview-loaded', mLoaded.makeString());
@@ -3505,22 +3613,28 @@ const executionScript = (communicationKey) => {
         const ytdFlexyElm = elements.flexy;
         if (!ytdFlexyElm) return;
         const p = tabAStatus;
-        const q = calculationFn(p, 3 | 4 | 8 | 16 | 32 | 64);
+        const q = calculationFn(p, 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128);
 
-        let resetForChatDisappeared = false;
+        let resetForPanelDisappeared = false;
         if (p !== q) {
           console.log(388, p, q)
           let actioned = false;
-          if ((p & 8) === 0 && (q & 8) === 8) {
+          if( (p & 128) === 0 && (q & 128) === 128 ){
+            lastPanel = 'playlist'
+          } else if ((p & 8) === 0 && (q & 8) === 8) {
             lastPanel = 'chat'
           } else if ((((p & 4) == 4 && (q & 4) == 0 && (q & 8) === 0) || ((p & 8) == 8 && (q & 4) == 0 && (q & 8) === 0)) && lastPanel === 'chat') {
             // 24 -> 16 = -8; 'd'
             lastPanel = (lastTab || '');
-            resetForChatDisappeared = true;
+            resetForPanelDisappeared = true;
           } else if ((p & (4 | 8)) === 8 && (q & (4 | 8)) === 4 && lastPanel === 'chat') {
             // click close
             lastPanel = (lastTab || '');
-            resetForChatDisappeared = true;
+            resetForPanelDisappeared = true;
+          } else if ((p & 128) === 128 && (q & 128) ===0 && lastPanel === 'playlist'){
+
+            lastPanel = (lastTab || '');
+            resetForPanelDisappeared = true;
           }
           tabAStatus = q;
 
@@ -3538,6 +3652,29 @@ const executionScript = (communicationKey) => {
             bFixForResizedTab = true;
           }
 
+          if( (p & 2 ) === 0 &&  (q & 2 ) === 2 && (p & 128) === 128 && (q & 128) === 128  ){
+            lastPanel = (lastTab || '');
+            ytBtnClosePlaylist();
+            actioned = true;
+          }
+ 
+          if( (p&8) ===0 && (p & 128) === 128 &&  (q & 8) === 8 && (q & 128) === 128 && lastPanel === 'chat' ){
+            lastPanel = (lastTab || '');
+            ytBtnClosePlaylist();
+            actioned = true;
+          }
+          
+          if( (p&2) ===2 && (p & 128) === 0 &&  (q & 2) === 2 && (q & 128) === 128 && lastPanel === 'playlist' ){
+            switchToTab(null);
+            actioned = true;
+          }
+
+          if( (p&8) ===8 && (p & 128) === 0 &&  (q & 8) === 8 && (q & 128) === 128 && lastPanel === 'playlist' ){
+            lastPanel = (lastTab || '');
+            ytBtnCollapseChat();
+            actioned = true;
+          }
+          
           if ((q & 64) === 64) {
             actioned = false;
           } else if ((p & 64) == 64 && (q & 64) === 0) {
@@ -3569,7 +3706,7 @@ const executionScript = (communicationKey) => {
               ytBtnCollapseChat();
               actioned = true;
             }
-          } else if ((p & (1 | 16 | 8 | 2)) === (16 | 8) && (q & (1 | 16 | 8 | 2)) === (16)) {
+          } else if ((p & (1 | 16 | 8 | 2)) === (16 | 8) && (q & (1 | 16 | 8 | 2)) === (16) && (q & 128) === 0 ) {
             if (lastTab) {
               switchToTab(lastTab)
               actioned = true;
@@ -3626,20 +3763,37 @@ const executionScript = (communicationKey) => {
           // 24 20
           // 8 16   4 16
 
+          if (!actioned && (q & 128) === 128) {
+            lastPanel = 'playlist'
+            if ((q & 2) === 2) {
+              switchToTab(null)
+              actioned = true;
+            }
+          }
 
-          if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16 | 0 | 0)) {
+          if ((q & 128) === 128 & (p & 2) === 2 && (q & 2) === 0) {
+
+          } else if ((q & 128) === 128 & (p & 8) === 8 && (q & 8) === 0) {
+
+          } else if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16 | 0 | 0)) {
             console.log(388, 'd')
             if (lastPanel === 'chat') {
-              console.log(388, 'd1')
+              console.log(388, 'd1c')
               ytBtnExpandChat()
               actioned = true;
+              
+            }else if (lastPanel === 'playlist') {
+              console.log(388, 'd1p')
+              ytBtnOpenPlaylist()
+              actioned = true;
+              
             } else if (lastTab) {
-              console.log(388, 'd2')
+              console.log(388, 'd2t')
               switchToTab(lastTab)
               actioned = true;
-            } else if (resetForChatDisappeared) {
+            } else if (resetForPanelDisappeared) {
               // if lastTab is undefined
-              console.log(388, 'd3')
+              console.log(388, 'd2d')
               Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
               actioned = true;
             }
@@ -3681,7 +3835,10 @@ const executionScript = (communicationKey) => {
         // console.log('fixInitialTabStateFn 0c');
         const kTab = document.querySelector('[tyt-tab]');
         const qTab = (!kTab || kTab.getAttribute('tyt-tab') === '') ? checkElementExist('ytd-watch-flexy[is-two-columns_]', '[hidden]') : null;
-        if (checkElementExist('ytd-live-chat-frame#chat', '[hidden], [collapsed]')) {
+        if (checkElementExist('ytd-playlist-panel-renderer#playlist', '[hidden], [collapsed]')) {
+          console.log('fixInitialTabStateFn 1p');
+          switchToTab(null);
+        } else if (checkElementExist('ytd-live-chat-frame#chat', '[hidden], [collapsed]')) {
           console.log('fixInitialTabStateFn 1a');
           switchToTab(null);
           if (checkElementExist('ytd-watch-flexy[theater]', '[hidden]')) {
@@ -4842,6 +4999,20 @@ ytd-live-chat-frame#chat[collapsed] ytd-message-renderer ~ #show-hide-button.ytd
 display: none;
 }
 
+[tyt-playlist-expanded] secondary-wrapper > ytd-playlist-panel-renderer#playlist {
+    overflow: auto;
+    flex-shrink: 1;
+    flex-grow: 1;
+    max-height: unset !important;
+}
+
+[tyt-playlist-expanded] secondary-wrapper > ytd-playlist-panel-renderer#playlist > #container {
+  max-height: unset !important;
+}
+
+secondary-wrapper ytd-playlist-panel-renderer{
+  --ytd-margin-6x: var(--ytd-margin-3x);
+}
   `
 };
 (async () => {
