@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.026
+// @version               5.0.027
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3104,10 +3104,10 @@ const executionScript = (communicationKey) => {
 
               // urlChange for front page only
               await new Promise(resolve => {
-                const intersectionObserver = new IntersectionObserver((entries) => {
+                (new IntersectionObserver((_, observer) => {
+                  observer.disconnect();
                   resolve('#');
-                });
-                intersectionObserver.observe(chatframe);
+                })).observe(chatframe);
               });
               if (t !== ath) return;
               // if (document.visibilityState === 'hidden') {
