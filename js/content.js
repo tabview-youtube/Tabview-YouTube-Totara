@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.025
+// @version               5.0.026
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3087,34 +3087,43 @@ const executionScript = (communicationKey) => {
           cProto.urlChanged66 = cProto.urlChanged;
           let ath = 0;
           cProto.urlChangedAsync12 = async function () {
-            const isInLastDomAction = Date.now() - lastDomAction < 400;
+            // const isInLastDomAction = Date.now() - lastDomAction < 400;
             // console.log('chat868-urlChangedRequest1', Date.now());
             if (ath > 1e9) ath = 9;
             const t = ++ath;
             const chatframe = this.chatframe || (this.$ || 0).chatframe || 0;
             if (chatframe) {
-              if (chatframe.contentDocument === null) await Promise.resolve();
+              if (chatframe.contentDocument === null) await Promise.resolve('#').catch(console.warn);
               if (t !== ath) return;
               try {
                 let win = chatframe.contentWindow;
-                win && await (new Promise(r => win.setTimeout(r)).catch(console.warn));
+                win && await (new Promise(r => win.setTimeout.call(window, r, '1')).catch(console.warn)); // win.setTimeout might not run under background
                 win = null;
               } catch (e) { }
               if (t !== ath) return;
+
+              // urlChange for front page only
+              await new Promise(resolve => {
+                const intersectionObserver = new IntersectionObserver((entries) => {
+                  resolve('#');
+                });
+                intersectionObserver.observe(chatframe);
+              });
+              if (t !== ath) return;
+              // if (document.visibilityState === 'hidden') {
+              //   await getRafPromise();
+              //   if (t !== ath) return;
+              // }
             }
-            const delay = isInLastDomAction ? 136 : 0;
+            // const delay = isInLastDomAction ? 136 : 0;
             // console.log('chat868-urlChangedRequest2', Date.now());
-            await (delay > 0 ? delayPn(delay) : Promise.resolve());
-            if (t !== ath) return;
+            // await (delay > 0 ? delayPn(delay) : Promise.resolve());
+            // if (t !== ath) return;
             // console.log('chat868-urlChangedRequest3', Date.now());
             this.urlChanged66();
           }
           cProto.urlChanged = function () {
-            if (document.visibilityState === 'hidden') {
-              this.urlChanged66();
-            } else {
               this.urlChangedAsync12();
-            }
           }
         }
 
