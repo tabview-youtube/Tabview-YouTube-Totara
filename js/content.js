@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.027
+// @version               5.0.028
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3628,11 +3628,11 @@ const executionScript = (communicationKey) => {
         if (p !== q) {
           console.log(388, p, q)
           let actioned = false;
-          if( (p & 128) === 0 && (q & 128) === 128 ){
+          if ((p & 128) === 0 && (q & 128) === 128) {
             lastPanel = 'playlist'
           } else if ((p & 8) === 0 && (q & 8) === 8) {
             lastPanel = 'chat'
-          } else if ((((p & 4) == 4 && (q & 4) == 0 && (q & 8) === 0) || ((p & 8) == 8 && (q & 4) == 0 && (q & 8) === 0)) && lastPanel === 'chat') {
+          } else if ((((p & 4) == 4 && (q & (4 | 8)) == (0 | 0)) || ((p & 8) == 8 && (q & (4 | 8)) === (0 | 0))) && lastPanel === 'chat') {
             // 24 -> 16 = -8; 'd'
             lastPanel = (lastTab || '');
             resetForPanelDisappeared = true;
@@ -3640,7 +3640,7 @@ const executionScript = (communicationKey) => {
             // click close
             lastPanel = (lastTab || '');
             resetForPanelDisappeared = true;
-          } else if ((p & 128) === 128 && (q & 128) ===0 && lastPanel === 'playlist'){
+          } else if ((p & 128) === 128 && (q & 128) === 0 && lastPanel === 'playlist') {
 
             lastPanel = (lastTab || '');
             resetForPanelDisappeared = true;
@@ -3661,32 +3661,51 @@ const executionScript = (communicationKey) => {
             bFixForResizedTab = true;
           }
 
-          if( (p & 2 ) === 0 &&  (q & 2 ) === 2 && (p & 128) === 128 && (q & 128) === 128  ){
+          // p->q +2
+          if ((p & 2) === 0 && (q & 2) === 2 && (p & 128) === 128 && (q & 128) === 128) {
             lastPanel = (lastTab || '');
             ytBtnClosePlaylist();
             actioned = true;
           }
- 
-          if( (p&8) ===0 && (p & 128) === 128 &&  (q & 8) === 8 && (q & 128) === 128 && lastPanel === 'chat' ){
+
+          // p->q +8
+          if ((p & (8 | 128)) === (0 | 128) && (q & (8 | 128)) === (8 | 128) && lastPanel === 'chat') {
             lastPanel = (lastTab || '');
             ytBtnClosePlaylist();
             actioned = true;
           }
-          
-          if( (p&2) ===2 && (p & 128) === 0 &&  (q & 2) === 2 && (q & 128) === 128 && lastPanel === 'playlist' ){
+
+          // p->q +128
+          if ((p & (2 | 128)) === (2 | 0) && (q & (2 | 128)) === (2 | 128) && lastPanel === 'playlist') {
             switchToTab(null);
             actioned = true;
           }
 
-          if( (p&8) ===8 && (p & 128) === 0 &&  (q & 8) === 8 && (q & 128) === 128 && lastPanel === 'playlist' ){
+          // p->q +128
+          if ((p & (8 | 128)) === (8 | 0) && (q & (8 | 128)) === (8 | 128) && lastPanel === 'playlist') {
             lastPanel = (lastTab || '');
             ytBtnCollapseChat();
             actioned = true;
           }
-          
+
+
+          // p->q +128
+          if ((p & (1 | 16 | 128)) == (1 | 16) && (q & (1 | 16 | 128)) == (1 | 16 | 128)) {
+            ytBtnCancelTheater();
+            actioned = true;
+          }
+
+          // p->q +1
+          if ((p & (1 | 16 | 128)) == (16 | 128) && (q & (1 | 16 | 128)) == (1 | 16 | 128)) {
+            lastPanel = (lastTab || '');
+            ytBtnClosePlaylist();
+            actioned = true;
+          }
+
           if ((q & 64) === 64) {
             actioned = false;
           } else if ((p & 64) == 64 && (q & 64) === 0) {
+            // p->q -64
 
             if ((q & 32) === 32) {
               ytBtnCloseEngagementPanels();
@@ -3704,9 +3723,11 @@ const executionScript = (communicationKey) => {
             }
 
           } else if ((p & (1 | 2 | 8 | 16 | 32)) === (1 | 0 | 0 | 16 | 0) && (q & (1 | 2 | 8 | 16 | 32)) === (1 | 0 | 8 | 16 | 0)) {
+            // p->q +8
             ytBtnCancelTheater();
             actioned = true;
           } else if ((p & (1 | 16 | 32)) === (0 | 16 | 0) && (q & (1 | 16 | 32)) === (0 | 16 | 32) && (q & (2 | 8)) > 0) {
+            // p->q +32
             if (q & 2) {
               switchToTab(null);
               actioned = true;
@@ -3715,13 +3736,15 @@ const executionScript = (communicationKey) => {
               ytBtnCollapseChat();
               actioned = true;
             }
-          } else if ((p & (1 | 16 | 8 | 2)) === (16 | 8) && (q & (1 | 16 | 8 | 2)) === (16) && (q & 128) === 0 ) {
+          } else if ((p & (1 | 16 | 8 | 2)) === (16 | 8) && (q & (1 | 16 | 8 | 2)) === (16) && (q & 128) === 0) {
+            // p->q -8
             if (lastTab) {
               switchToTab(lastTab)
               actioned = true;
             }
 
           } else if ((p & 1) === 0 && (q & 1) === 1) {
+            // p->q +1
             if ((q & 32) === 32) {
               ytBtnCloseEngagementPanels();
             }
@@ -3732,26 +3755,27 @@ const executionScript = (communicationKey) => {
             actioned = true;
 
           } else if ((p & 3) === 1 && (q & 3) === 3) {
+            // p->q +2
             ytBtnCancelTheater();
             actioned = true;
           } else if ((p & 10) === 2 && (q & 10) === 10) {
-
+            // p->q +8
             switchToTab(null)
             actioned = true;
 
           } else if ((p & (8 | 32)) === (0 | 32) && (q & (8 | 32)) === (8 | 32)) {
-
+            // p->q +8
             ytBtnCloseEngagementPanels();
             actioned = true;
 
 
           } else if ((p & (2 | 32)) === (0 | 32) && (q & (2 | 32)) === (2 | 32)) {
-
+            // p->q +2
             ytBtnCloseEngagementPanels();
             actioned = true;
 
           } else if ((p & (2 | 8)) === (0 | 8) && (q & (2 | 8)) === (2 | 8)) {
-
+            // p->q +2
             ytBtnCollapseChat();
             actioned = true;
             // if( lastPanel && (p & (1|16) === 16)  && (q & (1 | 16 | 8 | 2)) === (16) ){
@@ -3759,6 +3783,7 @@ const executionScript = (communicationKey) => {
             //   actioned = true;
             // }
           } else if ((p & 1) === 1 && (q & (1 | 32)) === (0 | 0)) {
+            // p->q -1
             if (lastPanel === 'chat') {
               ytBtnExpandChat()
               actioned = true;
@@ -3780,9 +3805,11 @@ const executionScript = (communicationKey) => {
             }
           }
 
-          if ((q & 128) === 128 & (p & 2) === 2 && (q & 2) === 0) {
+          if ((p & 2) === 2 && (q & (2 | 128)) === (0 | 128)) {
+            // p->q -2
 
-          } else if ((q & 128) === 128 & (p & 8) === 8 && (q & 8) === 0) {
+          } else if ((p & 8) === 8 && (q & (8 | 128)) === (0 | 128)) {
+            // p->q -8
 
           } else if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16 | 0 | 0)) {
             console.log(388, 'd')
@@ -3790,12 +3817,12 @@ const executionScript = (communicationKey) => {
               console.log(388, 'd1c')
               ytBtnExpandChat()
               actioned = true;
-              
-            }else if (lastPanel === 'playlist') {
+
+            } else if (lastPanel === 'playlist') {
               console.log(388, 'd1p')
               ytBtnOpenPlaylist()
               actioned = true;
-              
+
             } else if (lastTab) {
               console.log(388, 'd2t')
               switchToTab(lastTab)
@@ -5022,6 +5049,19 @@ display: none;
 secondary-wrapper ytd-playlist-panel-renderer{
   --ytd-margin-6x: var(--ytd-margin-3x);
 }
+
+ytd-watch-flexy[theater] ytd-playlist-panel-renderer[collapsible][collapsed] .header.ytd-playlist-panel-renderer {
+  padding: 6px 8px;
+}
+ytd-watch-flexy[theater] #playlist.ytd-watch-flexy {
+  margin-bottom: var(--ytd-margin-2x);
+}
+
+ytd-watch-flexy[theater] #right-tabs .tab-btn[tyt-tab-content] {
+  padding: 8px 4px 6px;
+  border-bottom: 0px solid transparent;
+}
+
   `
 };
 (async () => {
