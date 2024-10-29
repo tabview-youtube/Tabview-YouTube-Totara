@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.028
+// @version               5.0.029
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3095,11 +3095,7 @@ const executionScript = (communicationKey) => {
             if (chatframe) {
               if (chatframe.contentDocument === null) await Promise.resolve('#').catch(console.warn);
               if (t !== ath) return;
-              try {
-                let win = chatframe.contentWindow;
-                win && await (new Promise(r => win.setTimeout.call(window, r, '1')).catch(console.warn)); // win.setTimeout might not run under background
-                win = null;
-              } catch (e) { }
+              await (new Promise(r => window.setTimeout.call(window, r, '1')).catch(console.warn));
               if (t !== ath) return;
 
               // urlChange for front page only
