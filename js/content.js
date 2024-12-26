@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.030
+// @version               5.0.031
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -893,7 +893,7 @@ const executionScript = (communicationKey) => {
         
         if (elements.comments !== commentsArea) return;
         if (commentsArea.isConnected === false) return;
-        console.log(7932, 'comments');
+        // console.log(7932, 'comments');
 
         if (commentsArea.closest('#tab-comments')) {
           const shouldTabVisible = !commentsArea.closest('[hidden]');
@@ -944,7 +944,7 @@ const executionScript = (communicationKey) => {
           bFixForResizedTabLater = true;
         }
       }
-      console.log('resize')
+      // console.log('resize')
     });
 
     const switchToTab = (activeLink) => {
@@ -1217,7 +1217,7 @@ const executionScript = (communicationKey) => {
    
           */
 
-      console.log('updateChatLocation498')
+      // console.log('updateChatLocation498')
       if (this.is !== "ytd-watch-grid") {
         this.updatePageMediaQueries();
         this.schedulePlayerSizeUpdate_()
@@ -1442,7 +1442,7 @@ const executionScript = (communicationKey) => {
 
     const infoFix = (lockId) => {
       if (lockGet['infoFixLock'] !== lockId) return;
-      console.log('((infoFix))')
+      // console.log('((infoFix))')
       const infoExpander = elements.infoExpander;
       const infoContainer = (infoExpander ? infoExpander.parentNode : null) || document.querySelector('#tab-info');
       const ytdFlexyElm = elements.flexy;
@@ -1530,7 +1530,7 @@ const executionScript = (communicationKey) => {
               const node = cnt.hostElement || cnt;
               if (node.jy8432) {
 
-                console.log('hello _dataChanged496', this.is);
+                // console.log('hello _dataChanged496', this.is);
                 // await Promise.resolve(); // required for making sufficient delay for data rendering
                 attributeInc(node, 'tyt-data-change-counter'); // next macro task
               }
@@ -1555,7 +1555,7 @@ const executionScript = (communicationKey) => {
                 const cnt = this;
                 const node = cnt.hostElement || cnt;
                 if (node.jy8432) {
-                  console.log('hello _dataChanged496', this.is);
+                  // console.log('hello _dataChanged496', this.is);
                   // await Promise.resolve(); // required for making sufficient delay for data rendering
                   attributeInc(node, 'tyt-data-change-counter'); // next macro task
                 }
@@ -1644,7 +1644,7 @@ const executionScript = (communicationKey) => {
 
     const layoutFix = (lockId) => {
       if (lockGet['layoutFixLock'] !== lockId) return;
-      console.log('((layoutFix))')
+      // console.log('((layoutFix))')
 
       const secondaryWrapper = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy > secondary-wrapper');
       // console.log(3838, !!chatContainer, !!(secondaryWrapper && secondaryInner), secondaryInner?.firstChild, secondaryInner?.lastChild , secondaryWrapper?.parentNode === secondaryInner)
@@ -1720,7 +1720,7 @@ const executionScript = (communicationKey) => {
       if (lockId !== lockGet['updateEgmPanelsLock']) return;
       await navigateFinishedPromise.then().catch(console.warn);
       if (lockId !== lockGet['updateEgmPanelsLock']) return;
-      console.log('updateEgmPanels::called');
+      // console.log('updateEgmPanels::called');
       const ytdFlexyElm = elements.flexy;
       if (!ytdFlexyElm) return;
       let newVisiblePanels = [];
@@ -3483,7 +3483,7 @@ const executionScript = (communicationKey) => {
 
         if (!document.querySelector('ytd-watch-flexy #player')) return;
         // shouldFixInfo = true;
-        console.log('yt-navigate-finish')
+        // console.log('yt-navigate-finish')
         const flexyArr = [...document.querySelectorAll('ytd-watch-flexy')].filter(e => !e.closest('[hidden]') && e.querySelector('#player'));
         if (flexyArr.length === 1) {
           // const lockId = lockSet['yt-navigate-finish-videos'];
@@ -4031,7 +4031,7 @@ const executionScript = (communicationKey) => {
       if (typeof f === 'function') f(evt.target);
     }, capturePassive);
 
-    console.log('hi122')
+    // console.log('hi122')
 
 
     mLoaded.flag |= 1;
@@ -4863,6 +4863,14 @@ const styles = {
 
   ytd-watch-flexy[is-two-columns_] secondary-wrapper #chat.ytd-watch-flexy {
     margin-bottom: var(--ytd-margin-3x);
+  }
+
+  ytd-watch-flexy[is-two-columns_][theater] secondary-wrapper #chat.ytd-watch-flexy {
+    margin-bottom: 0;
+  }
+
+  ytd-watch-flexy[is-two-columns_][theater] secondary-wrapper #right-tabs {
+    margin-top: var(--ytd-margin-3x);
   }
 
   ytd-watch-flexy[tyt-tab] tp-yt-paper-tooltip {
