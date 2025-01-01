@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.033
+// @version               5.0.034
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -225,6 +225,7 @@ const executionScript = (communicationKey) => {
     if (CustomElementRegistry.prototype.define000) return;
     if (typeof CustomElementRegistry.prototype.define !== 'function') return;
 
+    /** @type {HTMLElement} */
     const HTMLElement_ = HTMLElement.prototype.constructor;
 
     const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
@@ -782,63 +783,13 @@ const executionScript = (communicationKey) => {
       }
     };
 
-    const aoInfoAttrChangeFn = async (lockId) => {
-      if (lockGet['aoInfoAttrAsyncLock'] !== lockId) return;
+    // const aoInfoAttrChangeFn = async (lockId) => {
+    //   if (lockGet['aoInfoAttrAsyncLock'] !== lockId) return;
+    // };
 
-      const infoElm = elements.infoExpander;
-      const ytdFlexyElm = elements.flexy;
-      // console.log(1882, chatElm, ytdFlexyElm)
-      if (infoElm && ytdFlexyElm) {
-        const videoId = infoElm.getAttribute000('tyt-video-id');
-        const displayFor = infoElm.getAttribute000('tyt-display-for');
-        const b = videoId && displayFor && videoId === displayFor;
-        infoElm.classList.toggle('tyt-info-invisible', !b);
-      }
-    };
-
-    const zoInfoAttrChangeFn = async (lockId) => {
-      if (lockGet['zoInfoAttrAsyncLock'] !== lockId) return;
-      const infoElm = elements.infoExpander;
-      const ytdFlexyElm = elements.flexy;
-      // console.log(1882, chatElm, ytdFlexyElm)
-      if (infoElm && ytdFlexyElm) {
-        if (ytdFlexyElm.hasAttribute000('hidden')) {
-          infoElm.setAttribute111('tyt-video-id', '');
-        } else {
-
-          const videoId = getCurrentVideoId();
-          const ns = infoElm.querySelector000('noscript[ns-video-id]');
-          if(!ns){
-
-            console.log(59147, infoElm.getAttribute000('tyt-video-id'));
-            console.log(59148, infoElm.getAttribute000('tyt-display-for'));
-            console.log(59149, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
-            infoElm.setAttribute111('tyt-video-id', videoId);
-            infoElm.setAttribute111('tyt-display-for', videoId);
-            const ns = document.createElement('noscript');
-            ns.setAttribute000('ns-video-id', videoId);
-            let p = infoElm;
-            p = p.querySelector('#content.style-scope.ytd-expander') || p;
-            p = p.querySelector('#description.style-scope.ytd-expandable-video-description-body-renderer') || p;
-            p.prepend(ns)
-            nsMap.set(videoId, mWeakRef(ns));
-
-          }else if(ns.getAttribute('ns-video-id')===videoId){
-
-            console.log(59147, infoElm.getAttribute000('tyt-video-id'));
-            console.log(59148, infoElm.getAttribute000('tyt-display-for'));
-            console.log(59149, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
-            infoElm.setAttribute111('tyt-video-id', videoId);
-            infoElm.setAttribute111('tyt-display-for', videoId);
-          
-          }else{
-            infoElm.setAttribute111('tyt-video-id', videoId);
-
-            infoElm.setAttribute111('tyt-display-for', ns.getAttribute('ns-video-id'));
-          }
-        }
-      }
-    };
+    // const zoInfoAttrChangeFn = async (lockId) => {
+    //   if (lockGet['zoInfoAttrAsyncLock'] !== lockId) return;
+    // };
 
     const aoPlayListAttrChangeFn = async (lockId) => {
       if (lockGet['aoPlayListAttrAsyncLock'] !== lockId) return;
@@ -863,13 +814,13 @@ const executionScript = (communicationKey) => {
       Promise.resolve(lockSet['aoChatAttrAsyncLock']).then(aoChatAttrChangeFn).catch(console.warn);
     });
 
-    const aoInfo = new MutationObserver(()=>{
-      Promise.resolve(lockSet['aoInfoAttrAsyncLock']).then(aoInfoAttrChangeFn).catch(console.warn);
-    });
+    // const aoInfo = new MutationObserver(()=>{
+    //   Promise.resolve(lockSet['aoInfoAttrAsyncLock']).then(aoInfoAttrChangeFn).catch(console.warn);
+    // });
 
-    const zoInfo = new MutationObserver(()=>{
-      Promise.resolve(lockSet['zoInfoAttrAsyncLock']).then(zoInfoAttrChangeFn).catch(console.warn);
-    });
+    // const zoInfo = new MutationObserver(()=>{
+    //   Promise.resolve(lockSet['zoInfoAttrAsyncLock']).then(zoInfoAttrChangeFn).catch(console.warn);
+    // });
 
     const aoPlayList = new MutationObserver(()=>{
       Promise.resolve(lockSet['aoPlayListAttrAsyncLock']).then(aoPlayListAttrChangeFn).catch(console.warn);
@@ -3007,22 +2958,14 @@ const executionScript = (communicationKey) => {
 
         // if (inPageRearrange) return;
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
-        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
-        if (hostElement.isConnected !== true) return;
-        // if (hostElement.__connectedFlg__ !== 4) return;
-        // hostElement.__connectedFlg__ = 5;
-        // console.log(4959, hostElement)
-        
-        if (hostElement instanceof HTMLElement_ && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
 
-          hostElement.setAttribute111('tyt-content-comment-entry', '')
-          ioComment.observe(hostElement);
-        } else if (hostElement instanceof HTMLElement_ && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
-          //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
-
-          console.log(5084, 'ytd-expander::attached');
+        if(hostElement instanceof HTMLElement_ && hostElement.closest('[tyt-info-renderer]') && hostElement.isConnected === true){
+  
 
           elements.infoExpander = hostElement;
+          console.log(128384, elements.infoExpander)
+
+
           // console.log(1299, hostElement.parentNode, isRightTabsInserted)
 
           infoExpanderElementProvidedPromise.resolve();
@@ -3040,6 +2983,8 @@ const executionScript = (communicationKey) => {
           console.log(7932, 'infoExpander');
 
           const infoExpander = elements.infoExpander;
+          const infoExpanderBack = elements.infoExpanderBack;
+
           
           // console.log(5438,infoExpander, qt);
           
@@ -3048,8 +2993,11 @@ const executionScript = (communicationKey) => {
           // dummy.setAttribute000('video-id', getCurrentVideoId());
           // infoExpander.insertBefore000(dummy, infoExpander.firstChild);
 
-          aoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['tyt-display-for', 'tyt-video-id'] });
-          zoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['hidden', 'attr-w20ts'], childList: true, subtree: true});
+          // aoInfo.observe(infoExpander, { attributes: true, attributeFilter: ['tyt-display-for', 'tyt-video-id'] });
+          // zoInfo.observe(infoExpanderBack, { attributes: true, attributeFilter: ['hidden', 'attr-w20ts'], childList: true, subtree: true});
+          // new MutationObserver(()=>{
+          //   console.log(591499)
+          // }).observe(infoExpanderBack, {childList: true, subtree: true})
           
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
             document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
@@ -3062,8 +3010,47 @@ const executionScript = (communicationKey) => {
           }
           // if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
 
-          infoExpander.incAttribute111('attr-w20ts');
+          // infoExpanderBack.incAttribute111('attr-w20ts');
 
+          return;
+        }
+
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== true) return;
+        // if (hostElement.__connectedFlg__ !== 4) return;
+        // hostElement.__connectedFlg__ = 5;
+        // console.log(4959, hostElement)
+        
+    
+        if (hostElement instanceof HTMLElement_ && hostElement.matches('[tyt-comments-area] #contents ytd-expander#expander') && !hostElement.matches('[hidden] ytd-expander#expander')) {
+
+          hostElement.setAttribute111('tyt-content-comment-entry', '')
+          ioComment.observe(hostElement);
+        } else if (hostElement instanceof HTMLElement_ && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
+          //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
+
+          console.log(5084, 'ytd-expander::attached');
+          const bodyRenderer = hostElement.closest('ytd-expandable-video-description-body-renderer');
+          let bodyRendererNew = document.querySelector('ytd-expandable-video-description-body-renderer[tyt-info-renderer]');
+          if(!bodyRendererNew){
+            bodyRendererNew = document.createElement('ytd-expandable-video-description-body-renderer');
+            let nsTemplate= document.querySelector('ytd-watch-flexy noscript[ns-template]');
+            if(!nsTemplate){
+              document.querySelector('ytd-watch-flexy').appendChild(document.createElement('noscript')).setAttribute('ns-template','');
+            }
+            bodyRendererNew.setAttribute('tyt-info-renderer','')
+            nsTemplate= document.querySelector('ytd-watch-flexy noscript[ns-template]');
+            nsTemplate.appendChild(bodyRendererNew);
+          }
+          // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+          insp(bodyRendererNew).data = insp(bodyRenderer).data;
+          elements.infoExpanderRendererBack = bodyRenderer;
+          elements.infoExpanderRendererFront = bodyRendererNew;
+          bodyRenderer.setAttribute('tyt-info-renderer-back','')
+          bodyRendererNew.setAttribute('tyt-info-renderer-front','')
+
+          elements.infoExpanderBack = hostElement;
+          
         }
         // console.log('ytd-expander::attached', hostElement);
 
@@ -3880,32 +3867,6 @@ const executionScript = (communicationKey) => {
         if (lockId !== lockGet['updateOnVideoIdChangedLock']) return;
         const videoId = tmpLastVideoId;
         if (!videoId) return;
-        const infoExpander = elements.infoExpander;
-        if (infoExpander && !infoExpander.hasAttribute000('hidden')) {
-          const currenVideoId = infoExpander.getAttribute000('tyt-video-id');
-          console.log(59141, currenVideoId);
-          console.log(59142, `${infoExpander.textContent}`.replace(/\s+/g,' ').trim());
-          // if(currenVideoId && videoId && currenVideoId !== videoId){
-          //   insp(infoExpander).hidden = true;
-          // }else{
-
-          // }
-          infoExpander.setAttribute111('tyt-video-id', videoId);
-
-          const ns = kRef(nsMap.get(videoId));
-          if(ns){
-            console.log(59143, ns)
-          }
-          const infoExpanderOld = ns instanceof Element ? ns.closest('ytd-expander') : null;
-          if (infoExpanderOld) {
-            const p = infoExpander.parentNode;
-            const n = infoExpander.nextSibling;
-            console.log(59144, infoExpanderOld, p, n);
-            infoExpander.remove();
-            p.insertBefore(infoExpanderOld, n);
-          }
-
-        }
         Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
       },
 
