@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.032
+// @version               5.0.033
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -810,21 +810,24 @@ const executionScript = (communicationKey) => {
           const ns = infoElm.querySelector000('noscript[ns-video-id]');
           if(!ns){
 
-            console.log(59144, infoElm.getAttribute000('tyt-video-id'));
-            console.log(59145, infoElm.getAttribute000('tyt-display-for'));
-            console.log(59146, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
+            console.log(59147, infoElm.getAttribute000('tyt-video-id'));
+            console.log(59148, infoElm.getAttribute000('tyt-display-for'));
+            console.log(59149, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
             infoElm.setAttribute111('tyt-video-id', videoId);
             infoElm.setAttribute111('tyt-display-for', videoId);
             const ns = document.createElement('noscript');
             ns.setAttribute000('ns-video-id', videoId);
-            infoElm.prepend(ns)
+            let p = infoElm;
+            p = p.querySelector('#content.style-scope.ytd-expander') || p;
+            p = p.querySelector('#description.style-scope.ytd-expandable-video-description-body-renderer') || p;
+            p.prepend(ns)
             nsMap.set(videoId, mWeakRef(ns));
 
           }else if(ns.getAttribute('ns-video-id')===videoId){
 
-            console.log(59144, infoElm.getAttribute000('tyt-video-id'));
-            console.log(59145, infoElm.getAttribute000('tyt-display-for'));
-            console.log(59146, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
+            console.log(59147, infoElm.getAttribute000('tyt-video-id'));
+            console.log(59148, infoElm.getAttribute000('tyt-display-for'));
+            console.log(59149, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
             infoElm.setAttribute111('tyt-video-id', videoId);
             infoElm.setAttribute111('tyt-display-for', videoId);
           
@@ -3890,11 +3893,14 @@ const executionScript = (communicationKey) => {
           infoExpander.setAttribute111('tyt-video-id', videoId);
 
           const ns = kRef(nsMap.get(videoId));
+          if(ns){
+            console.log(59143, ns)
+          }
           const infoExpanderOld = ns instanceof Element ? ns.closest('ytd-expander') : null;
           if (infoExpanderOld) {
             const p = infoExpander.parentNode;
             const n = infoExpander.nextSibling;
-            console.log(59143, infoExpanderOld, p, n);
+            console.log(59144, infoExpanderOld, p, n);
             infoExpander.remove();
             p.insertBefore(infoExpanderOld, n);
           }
