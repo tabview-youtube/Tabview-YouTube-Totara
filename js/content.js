@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.034
+// @version               5.0.035
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -3043,7 +3043,13 @@ const executionScript = (communicationKey) => {
             nsTemplate.appendChild(bodyRendererNew);
           }
           // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+
           insp(bodyRendererNew).data = insp(bodyRenderer).data;
+          // if((bodyRendererNew.hasAttribute('hidden')?1:0)^(bodyRenderer.hasAttribute('hidden')?1:0)){
+          //   if(bodyRenderer.hasAttribute('hidden')) bodyRendererNew.setAttribute('hidden', '');
+          //   else bodyRendererNew.removeAttribute('hidden');
+          // }
+
           elements.infoExpanderRendererBack = bodyRenderer;
           elements.infoExpanderRendererFront = bodyRendererNew;
           bodyRenderer.setAttribute('tyt-info-renderer-back','')
@@ -3867,6 +3873,21 @@ const executionScript = (communicationKey) => {
         if (lockId !== lockGet['updateOnVideoIdChangedLock']) return;
         const videoId = tmpLastVideoId;
         if (!videoId) return;
+        
+        const bodyRenderer = elements.infoExpanderRendererBack;
+        const bodyRendererNew = elements.infoExpanderRendererFront;
+
+        if(bodyRendererNew && bodyRenderer){
+
+          insp(bodyRendererNew).data = insp(bodyRenderer).data;
+          // if ((bodyRendererNew.hasAttribute('hidden') ? 1 : 0) ^ (bodyRenderer.hasAttribute('hidden') ? 1 : 0)) {
+          //   if (bodyRenderer.hasAttribute('hidden')) bodyRendererNew.setAttribute('hidden', '');
+          //   else bodyRendererNew.removeAttribute('hidden');
+          // }
+
+        }
+
+
         Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
       },
 
