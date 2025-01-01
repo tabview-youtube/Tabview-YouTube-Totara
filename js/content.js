@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.031
+// @version               5.0.032
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -805,9 +805,34 @@ const executionScript = (communicationKey) => {
         if (ytdFlexyElm.hasAttribute000('hidden')) {
           infoElm.setAttribute111('tyt-video-id', '');
         } else {
+
           const videoId = getCurrentVideoId();
-          infoElm.setAttribute111('tyt-video-id', videoId);
-          infoElm.setAttribute111('tyt-display-for', videoId);
+          const ns = infoElm.querySelector000('noscript[ns-video-id]');
+          if(!ns){
+
+            console.log(59144, infoElm.getAttribute000('tyt-video-id'));
+            console.log(59145, infoElm.getAttribute000('tyt-display-for'));
+            console.log(59146, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
+            infoElm.setAttribute111('tyt-video-id', videoId);
+            infoElm.setAttribute111('tyt-display-for', videoId);
+            const ns = document.createElement('noscript');
+            ns.setAttribute000('ns-video-id', videoId);
+            infoElm.prepend(ns)
+            nsMap.set(videoId, mWeakRef(ns));
+
+          }else if(ns.getAttribute('ns-video-id')===videoId){
+
+            console.log(59144, infoElm.getAttribute000('tyt-video-id'));
+            console.log(59145, infoElm.getAttribute000('tyt-display-for'));
+            console.log(59146, `${infoElm.textContent}`.replace(/\s+/g,' ').trim());
+            infoElm.setAttribute111('tyt-video-id', videoId);
+            infoElm.setAttribute111('tyt-display-for', videoId);
+          
+          }else{
+            infoElm.setAttribute111('tyt-video-id', videoId);
+
+            infoElm.setAttribute111('tyt-display-for', ns.getAttribute('ns-video-id'));
+          }
         }
       }
     };
@@ -2272,6 +2297,7 @@ const executionScript = (communicationKey) => {
 
     let inPageRearrange = false;
     let tmpLastVideoId = '';
+    const nsMap = new Map();
 
     const getCurrentVideoId = ()=>{
       const ytdFlexyElm = elements.flexy;
@@ -3853,7 +3879,26 @@ const executionScript = (communicationKey) => {
         if (!videoId) return;
         const infoExpander = elements.infoExpander;
         if (infoExpander && !infoExpander.hasAttribute000('hidden')) {
+          const currenVideoId = infoExpander.getAttribute000('tyt-video-id');
+          console.log(59141, currenVideoId);
+          console.log(59142, `${infoExpander.textContent}`.replace(/\s+/g,' ').trim());
+          // if(currenVideoId && videoId && currenVideoId !== videoId){
+          //   insp(infoExpander).hidden = true;
+          // }else{
+
+          // }
           infoExpander.setAttribute111('tyt-video-id', videoId);
+
+          const ns = kRef(nsMap.get(videoId));
+          const infoExpanderOld = ns instanceof Element ? ns.closest('ytd-expander') : null;
+          if (infoExpanderOld) {
+            const p = infoExpander.parentNode;
+            const n = infoExpander.nextSibling;
+            console.log(59143, infoExpanderOld, p, n);
+            infoExpander.remove();
+            p.insertBefore(infoExpanderOld, n);
+          }
+
         }
         Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
       },
