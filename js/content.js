@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.035
+// @version               5.0.036
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -4896,14 +4896,6 @@ const styles = {
 
   ytd-watch-flexy[is-two-columns_] secondary-wrapper #chat.ytd-watch-flexy {
     margin-bottom: var(--ytd-margin-3x);
-  }
-
-  ytd-watch-flexy[is-two-columns_][theater] secondary-wrapper #chat.ytd-watch-flexy {
-    margin-bottom: 0;
-  }
-
-  ytd-watch-flexy[is-two-columns_][theater] secondary-wrapper #right-tabs {
-    margin-top: var(--ytd-margin-3x);
   }
 
   ytd-watch-flexy[tyt-tab] tp-yt-paper-tooltip {
