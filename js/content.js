@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.036
+// @version               5.0.037
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -227,6 +227,24 @@ const executionScript = (communicationKey) => {
 
     /** @type {HTMLElement} */
     const HTMLElement_ = HTMLElement.prototype.constructor;
+
+    /**
+     *  @param {Element} elm
+     * @param {string} selector
+     * @returns {Element | null}
+     *  */
+    const qsOne = (elm, selector) => {
+      return HTMLElement_.prototype.querySelector.call(elm, selector);
+    }
+
+    /**
+     *  @param {Element} elm
+     * @param {string} selector
+     * @returns {NodeListOf<Element>}
+     *  */
+    const qsAll = (elm, selector) => {
+      return HTMLElement_.prototype.querySelectorAll.call(elm, selector);
+    }
 
     const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
 
@@ -1418,9 +1436,22 @@ const executionScript = (communicationKey) => {
     }
 
 
+    /**
+        * UC[-_a-zA-Z0-9+=.]{22}
+        * https://support.google.com/youtube/answer/6070344?hl=en
+        * The channel ID is the 24 character alphanumeric string that starts with 'UC' in the channel URL.
+    */
+
+    const isChannelId = (x) => {
+      if (typeof x === 'string' && x.length === 24) {
+        return /UC[-_a-zA-Z0-9+=.]{22}/.test(x);
+      }
+      return false;
+    }
+
 
     const infoFix = (lockId) => {
-      if (lockGet['infoFixLock'] !== lockId) return;
+      if (lockId !== null && lockGet['infoFixLock'] !== lockId) return;
       // console.log('((infoFix))')
       const infoExpander = elements.infoExpander;
       const infoContainer = (infoExpander ? infoExpander.parentNode : null) || document.querySelector('#tab-info');
@@ -1986,6 +2017,8 @@ const executionScript = (communicationKey) => {
 
         }
 
+
+
         /*
             
             {
@@ -1999,8 +2032,10 @@ const executionScript = (communicationKey) => {
   
         */
 
+        if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.browseEndpoint && isChannelId(endpoint.browseEndpoint.browseId)) {
+          valid = true;
 
-        if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
+        } else if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
 
           if (endpoint.browseEndpoint && endpoint.browseEndpoint.browseId === "FEwhat_to_watch") {
             // valid = false;
@@ -2021,19 +2056,37 @@ const executionScript = (communicationKey) => {
         return endpoint;
       }
 
+      const shouldUseMiniPlayer = ()=>{
+
+        const isSubTypeExist = document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]');
+
+        if(isSubTypeExist) return true;
+
+        const movie_player = [...document.querySelectorAll('#movie_player')].filter(e => !e.closest('[hidden]'))[0];
+        if (movie_player) {
+          const media = qsOne(movie_player, 'video[class], audio[class]');
+          if (media && media.currentTime > 3 && media.duration - media.currentTime > 3 && media.paused === false) {
+            return true;
+          }
+        }
+        return false;
+        // return true;
+        // return !!document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]');
+      }
+
       const conditionFulfillment = (req) => {
         const endpoint = req ? req.command : null;
         if (!endpoint) return;
 
         if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.watchEndpoint) {
+        } else if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.browseEndpoint && isChannelId(endpoint.browseEndpoint.browseId)) {
         } else if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
         } else {
           return false;
         }
 
 
-        if (!document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]')) return false;
-
+        if (!shouldUseMiniPlayer()) return false;
 
         /*
           // user would like to switch page immediately without playing the video;
@@ -2059,9 +2112,56 @@ const executionScript = (communicationKey) => {
         return true;
       }
 
+      let u38 = 0;
+      const fixChannelAboutPopup = async (t38)=>{
+
+        let promise = new PromiseExternal();
+        const f = () => {
+          promise && promise.resolve();
+          promise = null;
+        }
+        document.addEventListener('yt-navigate-finish', f, false);
+        await promise.then();
+        promise = null;
+        document.removeEventListener('yt-navigate-finish', f, false);
+        if (t38 !== u38) return;
+        setTimeout(() => {
+          const currentAbout = [...document.querySelectorAll('ytd-about-channel-renderer')].filter(e => !e.closest('[hidden]'))[0];
+          let okay = false;
+          if (!currentAbout) okay = true;
+          else {
+            const popupContainer = currentAbout.closest('ytd-popup-container');
+            if (popupContainer) {
+              const cnt = insp(popupContainer);
+              let arr = null;
+              try {
+                arr = cnt.handleGetOpenedPopupsAction_()
+              } catch (e) {
+
+              }
+              if (arr && arr.length === 0) okay = true;
+            } else {
+              okay = false;
+            }
+          }
+          if (okay) {
+            const descriptionModel = [...document.querySelectorAll('yt-description-preview-view-model')].filter(e => !e.closest('[hidden]'))[0];
+            if (descriptionModel) {
+              const button = [...descriptionModel.querySelectorAll('button')].filter(e => !e.closest('[hidden]') && `${e.textContent}`.trim().length > 0)[0];
+              if (button) {
+                button.click();
+              }
+            }
+          }
+        }, 80); 
+
+      }
       const handleNavigateFactory = (handleNavigate) => {
 
         return function (req) {
+
+          if (u38 > 1e9) u38 = 9;
+          const t38 = ++u38;
 
           const $this = this;
           const $arguments = arguments;
@@ -2077,7 +2177,7 @@ const executionScript = (communicationKey) => {
           }
 
 
-          if (!endpoint || !document.querySelector('ytd-page-manager#page-manager > ytd-browse[page-subtype]')) return handleNavigate.apply($this, $arguments);
+          if (!endpoint || !shouldUseMiniPlayer()) return handleNavigate.apply($this, $arguments);
 
           // console.log('tabview-script-handleNavigate')
 
@@ -2170,7 +2270,14 @@ const executionScript = (communicationKey) => {
             document.addEventListener('loadstart', loadStartFx, true)
           }
 
+          const endpointURL = `${(endpoint?.commandMetadata?.webCommandMetadata?.url || '' )}`;
+
+          if (endpointURL && endpointURL.endsWith('/about') && /\/channel\/UC[-_a-zA-Z0-9+=.]{22}\/about/.test(endpointURL)) {
+            fixChannelAboutPopup(t38);
+          }
+
           handleNavigate.apply($this, $arguments);
+
 
         }
 
@@ -2265,7 +2372,7 @@ const executionScript = (communicationKey) => {
     const plugin = {
       'minibrowser': {
         activated: false,
-        toUse: true,
+        toUse: true, // depends on shouldUseMiniPlayer()
         activate() {
 
           if (this.activated) return;
@@ -3008,6 +3115,10 @@ const executionScript = (communicationKey) => {
               document.querySelector('[tyt-tab-content="#tab-info"]').classList.toggle('tab-btn-hidden', !shouldTabVisible);
             }
           }
+
+          
+          Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn); // required when the page is switched from channel to watch
+
           // if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
 
           // infoExpanderBack.incAttribute111('attr-w20ts');
@@ -3524,7 +3635,9 @@ const executionScript = (communicationKey) => {
             chat.setAttribute111('tyt-active-chat-frame', 'CF'); // chat and flexy ready
           }
           const infoExpander = elements.infoExpander;
-          if (infoExpander && infoExpander.closest('#right-tabs')) Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+          if (infoExpander && infoExpander.closest('#right-tabs')){
+            Promise.resolve(lockSet['infoFixLock']).then(infoFix).catch(console.warn);
+          }
           Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
           if (plugin.fullChannelNameOnHover.activated) plugin.fullChannelNameOnHover.onNavigateFinish();
         }
@@ -3597,6 +3710,8 @@ const executionScript = (communicationKey) => {
           Promise.resolve(lockSet['fixInitialTabStateLock']).then(eventMap['fixInitialTabStateFn']).catch(console.warn);
 
           ytdFlexyElm.incAttribute111('attr-7qlsy'); // tabsStatusCorrectionLock and video-id
+
+
           
         }
 
@@ -4853,17 +4968,16 @@ const styles = {
 
 
   body ytd-watch-flexy[theater] #secondary.ytd-watch-flexy {
-      margin-top: 0;
-      padding-top: var(--ytd-margin-2x);
+      margin-top: var(--ytd-margin-3x);
+      padding-top: 0;
   }
-      
 
   body ytd-watch-flexy[theater] secondary-wrapper {
-      padding-top: var(--ytd-margin-2x);
+      margin-top: 0;
+      padding-top: 0;
   }
 
   body ytd-watch-flexy[theater] #chat.ytd-watch-flexy{
-
       margin-bottom:  var(--ytd-margin-2x);
   }
 
