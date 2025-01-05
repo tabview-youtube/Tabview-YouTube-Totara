@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.039
+// @version               5.0.040
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -1851,8 +1851,8 @@ const executionScript = (communicationKey) => {
 
         const newMedia = media;
 
-        const media1 = getMediaElement(0); // document.querySelector('#movie_player video[src]');
-        const media2 = getMediaElements(2); // document.querySelectorAll('ytd-browse[role="main"] video[src]');
+        const media1 = common.getMediaElement(0); // document.querySelector('#movie_player video[src]');
+        const media2 = common.getMediaElements(2); // document.querySelectorAll('ytd-browse[role="main"] video[src]');
 
         if (media1 !== null && media2.length > 0) {
           if (newMedia !== media1 && media1.paused === false) {
