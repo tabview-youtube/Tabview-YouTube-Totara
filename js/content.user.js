@@ -7,7 +7,7 @@
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
 // @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.040
+// @version               5.0.041
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -4843,6 +4843,7 @@ const styles = {
       position: relative;
   }
 
+  /*
   @supports (contain: strict) {
 
   secondary-wrapper #content.ytd-engagement-panel-section-list-renderer > [panel-target-id]:only-child{
@@ -4862,6 +4863,17 @@ const styles = {
       max-height: 100%;
   }
 
+  }
+  */
+
+
+  secondary-wrapper #content.ytd-engagement-panel-section-list-renderer > [panel-target-id]:only-child{
+    /* https://www.youtube.com/watch?v=zLak0dxBKpM Transcript Panel Language Toggle */
+    contain: style size;
+  }
+
+  secondary-wrapper #content.ytd-engagement-panel-section-list-renderer ytd-transcript-segment-list-renderer.ytd-transcript-search-panel-renderer {
+    flex-grow: 1;
   }
 
 
