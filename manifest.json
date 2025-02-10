@@ -1,6 +1,6 @@
 {
    "content_scripts": [ {
-      "js": [ "js/content.js" ],
+      "js": [ "js/content.user.js" ],
       "matches": [ "https://www.youtube.com/*" ],
       "exclude_matches": [ "https://*.youtube.com/live_chat*" ],
       "run_at": "document_start",
@@ -16,9 +16,9 @@
     "host_permissions": [
       "https://www.youtube.com/*"
     ],
-   "version": "5.0.041",
+   "version": "5.0.042",
    "web_accessible_resources": [{
-      "resources": ["images/*.png", "js/injection*.js", "js/content.js", "css/style_*.css"],
+      "resources": ["images/*.png", "js/injection*.js", "js/content.user.js", "css/style_*.css"],
       "matches": ["https://www.youtube.com/*"]
     }]
 }
