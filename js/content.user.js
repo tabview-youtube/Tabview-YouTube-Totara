@@ -1,13 +1,11 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
+// @version               5.0.050
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
 // @match                 https://www.youtube.com/*
-// @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
-// @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 
-// @version               5.0.042
 // @author                CY Fung
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
@@ -32,6 +30,8 @@
 // @grant                 GM_registerMenuCommand
 // @grant                 GM_addElement
 // @noframes
+// @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
+// @exclude               /^https?://\S+\.(txt|png|jpg|jpeg|gif|xml|svg|manifest|log|ini)[^\/]*$/
 // @require               https://cdn.jsdelivr.net/gh/cyfung1031/userscript-supports@7221a4efffd49d852de0074ec503d4febb99f28b/library/nextBrowserTick.min.js
 //
 // ==/UserScript==
@@ -420,7 +420,7 @@ const executionScript = (communicationKey) => {
     const getMainInfo = () => {
       const infoExpander = elements.infoExpander;
       if (!infoExpander) return null;
-      const mainInfo = infoExpander.matches('ytd-expander[tyt-main-info]') ? infoExpander : infoExpander.querySelector000('ytd-expander[tyt-main-info]');
+      const mainInfo = infoExpander.matches('[tyt-main-info]') ? infoExpander : infoExpander.querySelector000('[tyt-main-info]');
       return mainInfo || null;
     }
     const asyncWrap = (asyncFn) => {
@@ -1356,7 +1356,10 @@ const executionScript = (communicationKey) => {
       const ytdFlexyElm = elements.flexy;
       if (!infoContainer || !ytdFlexyElm) return;
       // console.log(386, infoExpander, infoExpander.matches('#tab-info > [class]'))
-      if (infoExpander && !infoExpander.matches('#tab-info > [class]')) return;
+      if (infoExpander) {
+        const match = infoExpander.matches('#tab-info > [class]') || infoExpander.matches('#tab-info > [tyt-main-info]');
+        if (!match) return;
+      }
       // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"], ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer')].filter(elm=>{
       //   if(elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
       //    return true;
@@ -2256,7 +2259,7 @@ const executionScript = (communicationKey) => {
 
     let inPageRearrange = false;
     let tmpLastVideoId = '';
-    const nsMap = new Map();
+    // const nsMap = new Map();
 
     const getCurrentVideoId = ()=>{
       const ytdFlexyElm = elements.flexy;
@@ -2265,6 +2268,65 @@ const executionScript = (communicationKey) => {
       if(ytdFlexyElm && typeof ytdFlexyElm.videoId === 'string') return ytdFlexyElm.videoId;
       console.log('video id not found');
       return '';
+    }
+
+    const holdInlineExpanderAlwaysExpanded = (inlineExpanderCnt) => {
+      console.log('holdInlineExpanderAlwaysExpanded')
+      if (inlineExpanderCnt.alwaysShowExpandButton === true) inlineExpanderCnt.alwaysShowExpandButton = false;
+      if (typeof (inlineExpanderCnt.collapseLabel || 0) === 'string') inlineExpanderCnt.collapseLabel = '';
+      if (typeof (inlineExpanderCnt.expandLabel || 0) === 'string') inlineExpanderCnt.expandLabel = '';
+      if (inlineExpanderCnt.showCollapseButton === true) inlineExpanderCnt.showCollapseButton = false;
+      if (inlineExpanderCnt.showExpandButton === true) inlineExpanderCnt.showExpandButton = false;
+      if (inlineExpanderCnt.expandButton instanceof HTMLElement_) {
+        inlineExpanderCnt.expandButton = null;
+        inlineExpanderCnt.expandButton.remove();
+      }
+    }
+
+    const fixInlineExpanderMethods = (inlineExpanderCnt) => {
+      if (inlineExpanderCnt && !inlineExpanderCnt.__$$idncjk8487$$__) {
+        inlineExpanderCnt.__$$idncjk8487$$__ = true;
+        inlineExpanderCnt.updateTextOnSnippetTypeChange = function () {
+          true || this.isResetMutation && this.mutationCallback()
+        }
+        // inlineExpanderCnt.hasAttributedStringText = true;
+        inlineExpanderCnt.isResetMutation = true;
+        try {
+          inlineExpanderCnt.updateIsAttributedExpanded();
+        } catch (e) { }
+        try {
+          inlineExpanderCnt.updateIsFormattedExpanded();
+        } catch (e) { }
+        try {
+          inlineExpanderCnt.updateTextOnSnippetTypeChange()
+        } catch (e) { }
+        try {
+          inlineExpanderCnt.updateStyles();
+        } catch (e) { }
+      }
+    };
+
+    const fixInlineExpanderContent = () => {
+      // console.log(21886,1)
+      const mainInfo = getMainInfo();
+      if (!mainInfo) return;
+      // console.log(21886,2)
+      const inlineExpanderElm = mainInfo.querySelector('ytd-text-inline-expander');
+      const inlineExpanderCnt = insp(inlineExpanderElm);
+      fixInlineExpanderMethods(inlineExpanderCnt);
+
+      // console.log(21886, 3)
+      // if (inlineExpanderCnt && inlineExpanderCnt.isExpanded === true && plugin.autoExpandInfoDesc.activated) {
+      //   // inlineExpanderCnt.isExpandedChanged();
+      //   // holdInlineExpanderAlwaysExpanded(inlineExpanderCnt);
+      // }
+      // if(inlineExpanderCnt){
+      //   // console.log(21886,4, inlineExpanderCnt.isExpanded, inlineExpanderCnt.isTruncated)
+      //   if (inlineExpanderCnt.isExpanded === false && inlineExpanderCnt.isTruncated === true) {
+      //     // console.log(21881)
+      //     inlineExpanderCnt.isTruncated = false;
+      //   }
+      // }
     }
 
     const plugin = {
@@ -2302,7 +2364,7 @@ const executionScript = (communicationKey) => {
       },
       'autoExpandInfoDesc': {
         activated: false,
-        toUse: true,
+        toUse: false, // false by default; once the expand is clicked, maintain the feature until the browser is closed.
         /** @type { MutationObserver | null } */
         mo: null,
         promiseReady: new PromiseExternal(),
@@ -2311,15 +2373,31 @@ const executionScript = (communicationKey) => {
           if (lockGet['autoExpandInfoDescAttrAsyncLock'] !== lockId) return;
 
           const mainInfo = getMainInfo();
-          if (mainInfo && mainInfo.hasAttribute000('collapsed')) {
-            let success = false;
-            try {
-              insp(mainInfo).handleMoreTap(new Event("tap"));
-              success = true;
-            } catch (e) {
-            }
-            if (success) mainInfo.setAttribute111('tyt-no-less-btn', '');
+
+          if (!mainInfo) return;
+          switch (((mainInfo || 0).nodeName || '').toLowerCase()) {
+            case 'ytd-expander':
+              if (mainInfo.hasAttribute000('collapsed')) {
+                let success = false;
+                try {
+                  insp(mainInfo).handleMoreTap(new Event("tap"));
+                  success = true;
+                } catch (e) {
+                }
+                if (success) mainInfo.setAttribute111('tyt-no-less-btn', '');
+              }
+              break;
+            case 'ytd-expandable-video-description-body-renderer':
+              const inlineExpanderElm = mainInfo.querySelector('ytd-text-inline-expander');
+              const inlineExpanderCnt = insp(inlineExpanderElm);
+              if (inlineExpanderCnt && inlineExpanderCnt.isExpanded === false) {
+                inlineExpanderCnt.isExpanded = true;
+                inlineExpanderCnt.isExpandedChanged();
+                // holdInlineExpanderAlwaysExpanded(inlineExpanderCnt);
+              }
+              break;
           }
+
 
 
         },
@@ -2335,9 +2413,12 @@ const executionScript = (communicationKey) => {
         },
         async onMainInfoSet(mainInfo){
           await this.promiseReady.then();
-          this.mo.observe(mainInfo, {attributes: true, attributeFilter: ['collapsed', 'attr-8ifv7']});
+          if (mainInfo.nodeName.toLowerCase() === 'ytd-expander') {
+            this.mo.observe(mainInfo, { attributes: true, attributeFilter: ['collapsed', 'attr-8ifv7'] });
+          } else {
+            this.mo.observe(mainInfo, { attributes: true, attributeFilter: ['attr-8ifv7'] });
+          }
           mainInfo.incAttribute111('attr-8ifv7');
-
         }
       },
       'fullChannelNameOnHover': {
@@ -2436,6 +2517,8 @@ const executionScript = (communicationKey) => {
       }
     }
 
+    if (sessionStorage.__$$tmp_UseAutoExpandInfoDesc$$__) plugin.autoExpandInfoDesc.toUse = true;
+
     // let shouldFixInfo = false;
     const __attachedSymbol__ = Symbol();
 
@@ -2447,7 +2530,7 @@ const executionScript = (communicationKey) => {
         if (typeof cnt.attached498 === 'function' && !elm[__attachedSymbol__]) Promise.resolve(elm).then(eventMap[`${tag}::attached`]).catch(console.warn);
       }
       inPageRearrange = inPageRearrange_;
-    }
+    };
 
     const getGeneralChatElement = async () => {
       for (let i = 2; i-- > 0;) {
@@ -2460,6 +2543,33 @@ const executionScript = (communicationKey) => {
         }
       }
       return null;
+    };
+
+    const nsTemplateObtain = () => {
+      let nsTemplate = document.querySelector('ytd-watch-flexy noscript[ns-template]');
+      if (!nsTemplate) {
+        nsTemplate = document.createElement('noscript');
+        nsTemplate.setAttribute('ns-template', '');
+        document.querySelector('ytd-watch-flexy').appendChild(nsTemplate);
+      }
+      return nsTemplate;
+    };
+
+    const isPageDOM = (elm, selector) => {
+      if (!elm || !(elm instanceof Element) || !(elm.nodeName)) return false;
+      if (!elm.closest(selector)) return false;
+      if (elm.isConnected !== true) return false;
+      return true;
+    };
+
+    const invalidFlexyParent = (hostElement)=>{
+      if (hostElement instanceof HTMLElement) {
+        const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
+        if (!hasFlexyParent) return true;
+        const currentFlexy = elements.flexy;
+        if (currentFlexy && currentFlexy !== hasFlexyParent) return true;
+      }
+      return false;
     }
 
     const eventMap = {
@@ -2477,6 +2587,7 @@ const executionScript = (communicationKey) => {
         retrieveCE('ytd-engagement-panel-section-list-renderer').then(eventMap['ytd-engagement-panel-section-list-renderer::defined']).catch(console.warn);
         retrieveCE('ytd-watch-metadata').then(eventMap['ytd-watch-metadata::defined']).catch(console.warn);
         retrieveCE('ytd-playlist-panel-renderer').then(eventMap['ytd-playlist-panel-renderer::defined']).catch(console.warn);
+        retrieveCE('ytd-expandable-video-description-body-renderer').then(eventMap['ytd-expandable-video-description-body-renderer::defined']).catch(console.warn);
 
       },
 
@@ -2538,12 +2649,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-watch-next-secondary-results-renderer::attached': (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-watch-next-secondary-results-renderer::attached');
@@ -2674,12 +2780,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-comments::attached': async (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments::attached');
@@ -2787,17 +2888,11 @@ const executionScript = (communicationKey) => {
 
       'ytd-comments-header-renderer::attached': (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-comments-header-renderer::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
-
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -2952,19 +3047,33 @@ const executionScript = (communicationKey) => {
         }
       },
 
-      'ytd-expander::attached': async (hostElement) => {
+      'ytd-expandable-video-description-body-renderer::defined': (cProto) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
+
+        if (!cProto.attached498 && typeof cProto.attached === 'function') {
+          cProto.attached498 = cProto.attached;
+          cProto.attached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-expandable-video-description-body-renderer::attached']).catch(console.warn);
+            return this.attached498();
+          }
+        }
+        if (!cProto.detached498 && typeof cProto.detached === 'function') {
+          cProto.detached498 = cProto.detached;
+          cProto.detached = function () {
+            if (!inPageRearrange) Promise.resolve(this.hostElement).then(eventMap['ytd-expandable-video-description-body-renderer::detached']).catch(console.warn);
+            return this.detached498();
+          }
         }
 
-        // if (inPageRearrange) return;
-        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
+        makeInitAttached('ytd-expandable-video-description-body-renderer')
 
-        if(hostElement instanceof HTMLElement_ && hostElement.closest('[tyt-info-renderer]') && hostElement.isConnected === true){
+
+      },
+
+      'ytd-expandable-video-description-body-renderer::attached': async (hostElement)=>{
+
+
+        if(hostElement instanceof HTMLElement_ && isPageDOM(hostElement,'[tyt-info-renderer]') && !hostElement.matches('[tyt-main-info]')){
   
 
           elements.infoExpander = hostElement;
@@ -2987,8 +3096,10 @@ const executionScript = (communicationKey) => {
           if (hostElement.isConnected === false) return;
           console.log(7932, 'infoExpander');
 
+          elements.infoExpander.classList.add('tyt-main-info'); // add a classname for it
+
           const infoExpander = elements.infoExpander;
-          const infoExpanderBack = elements.infoExpanderBack;
+          // const infoExpanderBack = elements.infoExpanderBack;
 
           
           // console.log(5438,infoExpander, qt);
@@ -3003,7 +3114,36 @@ const executionScript = (communicationKey) => {
           // new MutationObserver(()=>{
           //   console.log(591499)
           // }).observe(infoExpanderBack, {childList: true, subtree: true})
-          
+
+          const inlineExpanderElm = infoExpander.querySelector('ytd-text-inline-expander');
+          if (inlineExpanderElm) {
+            const mo = new MutationObserver(() => {
+              const p = document.querySelector('#tab-info ytd-text-inline-expander');
+              sessionStorage.__$$tmp_UseAutoExpandInfoDesc$$__ = p && p.hasAttribute('is-expanded') ? '1' : '';
+              if (p) fixInlineExpanderContent();
+            });
+            mo.observe(inlineExpanderElm, { attributes: ['is-expanded', 'attr-6v8qu', 'hidden'], subtree: true }); // hidden + subtree to trigger the fn by delayedUpdate
+            hostElement.incAttribute111('attr-6v8qu');
+            const cnt = insp(inlineExpanderElm);
+            if (cnt) {
+
+              try {
+                cnt.updateIsAttributedExpanded();
+              } catch (e) { }
+              try {
+                cnt.updateIsFormattedExpanded();
+              } catch (e) { }
+              try {
+                cnt.updateTextOnSnippetTypeChange()
+              } catch (e) { }
+              try {
+                cnt.updateStyles();
+              } catch (e) { }
+
+            }
+          }
+
+
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
             document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
           } else {
@@ -3021,9 +3161,83 @@ const executionScript = (communicationKey) => {
 
           // infoExpanderBack.incAttribute111('attr-w20ts');
 
-          return;
+          // return;
         }
 
+
+        console.log(5084, 'ytd-expandable-video-description-body-renderer::attached');
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
+        if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== true) return;
+
+        if (isPageDOM(hostElement, '#tab-info [tyt-main-info]')) {
+
+          // const cnt = insp(hostElement);
+          // if(cnt.data){
+          //   cnt.data = Object.assign({}, cnt.data);
+          // }
+
+
+        } else if (!hostElement.closest('#tab-info')) {
+
+
+          const bodyRenderer = hostElement;
+          let bodyRendererNew = document.querySelector('ytd-expandable-video-description-body-renderer[tyt-info-renderer]');
+          if (!bodyRendererNew) {
+            bodyRendererNew = document.createElement('ytd-expandable-video-description-body-renderer');
+            bodyRendererNew.setAttribute('tyt-info-renderer', '');
+            nsTemplateObtain().appendChild(bodyRendererNew);
+          }
+          // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+
+          
+          const cnt = insp(bodyRendererNew);
+          cnt.data = Object.assign({}, insp(bodyRenderer).data);
+
+          const inlineExpanderElm = bodyRendererNew.querySelector('ytd-text-inline-expander');
+          const inlineExpanderCnt = insp(inlineExpanderElm);
+          fixInlineExpanderMethods(inlineExpanderCnt);
+
+          // insp(bodyRendererNew).data = insp(bodyRenderer).data;
+
+          // if((bodyRendererNew.hasAttribute('hidden')?1:0)^(bodyRenderer.hasAttribute('hidden')?1:0)){
+          //   if(bodyRenderer.hasAttribute('hidden')) bodyRendererNew.setAttribute('hidden', '');
+          //   else bodyRendererNew.removeAttribute('hidden');
+          // }
+
+          elements.infoExpanderRendererBack = bodyRenderer;
+          elements.infoExpanderRendererFront = bodyRendererNew;
+          bodyRenderer.setAttribute('tyt-info-renderer-back', '');
+          bodyRendererNew.setAttribute('tyt-info-renderer-front', '');
+
+          // elements.infoExpanderBack = {{ytd-expander}};
+
+
+        }
+
+      
+
+      },
+
+      'ytd-expandable-video-description-body-renderer::detached': async ()=>{
+        if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
+        if (hostElement.isConnected !== false) return;
+        // if (hostElement.__connectedFlg__ !== 8) return;
+        // hostElement.__connectedFlg__ = 9;
+        // console.log(5992, hostElement)
+        if (hostElement.hasAttribute000('tyt-main-info')) {
+          console.log(5084, 'ytd-expandable-video-description-body-renderer::detached');
+          elements.infoExpander = null;
+          hostElement.removeAttribute000('tyt-main-info');
+        }
+      },
+
+      'ytd-expander::attached': async (hostElement) => {
+
+        if (invalidFlexyParent(hostElement)) return;
+
+        // if (inPageRearrange) return;
+        if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -3035,38 +3249,40 @@ const executionScript = (communicationKey) => {
 
           hostElement.setAttribute111('tyt-content-comment-entry', '')
           ioComment.observe(hostElement);
-        } else if (hostElement instanceof HTMLElement_ && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
-          //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
+        } 
+        
+        // --------------
 
-          console.log(5084, 'ytd-expander::attached');
-          const bodyRenderer = hostElement.closest('ytd-expandable-video-description-body-renderer');
-          let bodyRendererNew = document.querySelector('ytd-expandable-video-description-body-renderer[tyt-info-renderer]');
-          if(!bodyRendererNew){
-            bodyRendererNew = document.createElement('ytd-expandable-video-description-body-renderer');
-            let nsTemplate= document.querySelector('ytd-watch-flexy noscript[ns-template]');
-            if(!nsTemplate){
-              document.querySelector('ytd-watch-flexy').appendChild(document.createElement('noscript')).setAttribute('ns-template','');
-            }
-            bodyRendererNew.setAttribute('tyt-info-renderer','')
-            nsTemplate= document.querySelector('ytd-watch-flexy noscript[ns-template]');
-            nsTemplate.appendChild(bodyRendererNew);
-          }
-          // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+        // else if (hostElement instanceof HTMLElement_ && hostElement.matches('ytd-expander#expander.style-scope.ytd-expandable-video-description-body-renderer')) {
+        //   //  && !hostElement.matches('#right-tabs ytd-expander#expander, [hidden] ytd-expander#expander')
 
-          insp(bodyRendererNew).data = insp(bodyRenderer).data;
-          // if((bodyRendererNew.hasAttribute('hidden')?1:0)^(bodyRenderer.hasAttribute('hidden')?1:0)){
-          //   if(bodyRenderer.hasAttribute('hidden')) bodyRendererNew.setAttribute('hidden', '');
-          //   else bodyRendererNew.removeAttribute('hidden');
-          // }
+        //   console.log(5084, 'ytd-expander::attached');
+        //   const bodyRenderer = hostElement.closest('ytd-expandable-video-description-body-renderer');
+        //   let bodyRendererNew = document.querySelector('ytd-expandable-video-description-body-renderer[tyt-info-renderer]');
+        //   if (!bodyRendererNew) {
+        //     bodyRendererNew = document.createElement('ytd-expandable-video-description-body-renderer');
+        //     bodyRendererNew.setAttribute('tyt-info-renderer', '');
+        //     nsTemplateObtain().appendChild(bodyRendererNew);
+        //   }
+        //   // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
 
-          elements.infoExpanderRendererBack = bodyRenderer;
-          elements.infoExpanderRendererFront = bodyRendererNew;
-          bodyRenderer.setAttribute('tyt-info-renderer-back','')
-          bodyRendererNew.setAttribute('tyt-info-renderer-front','')
+        //   insp(bodyRendererNew).data = insp(bodyRenderer).data;
+        //   // if((bodyRendererNew.hasAttribute('hidden')?1:0)^(bodyRenderer.hasAttribute('hidden')?1:0)){
+        //   //   if(bodyRenderer.hasAttribute('hidden')) bodyRendererNew.setAttribute('hidden', '');
+        //   //   else bodyRendererNew.removeAttribute('hidden');
+        //   // }
 
-          elements.infoExpanderBack = hostElement;
+        //   elements.infoExpanderRendererBack = bodyRenderer;
+        //   elements.infoExpanderRendererFront = bodyRendererNew;
+        //   bodyRenderer.setAttribute('tyt-info-renderer-back','')
+        //   bodyRendererNew.setAttribute('tyt-info-renderer-front','')
+
+        //   elements.infoExpanderBack = hostElement;
           
-        }
+        // }
+
+        // --------------
+
         // console.log('ytd-expander::attached', hostElement);
 
 
@@ -3161,17 +3377,11 @@ const executionScript = (communicationKey) => {
 
       'ytd-live-chat-frame::attached': async (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
         console.log(5084, 'ytd-live-chat-frame::attached');
         if (hostElement instanceof Element) hostElement[__attachedSymbol__] = true;
-
         if (!(hostElement instanceof HTMLElement_) || !(hostElement.classList.length > 0) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== true) return;
         // if (hostElement.__connectedFlg__ !== 4) return;
@@ -3261,12 +3471,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-engagement-panel-section-list-renderer::attached': (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
 
@@ -3334,12 +3539,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-watch-metadata::attached': (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
 
@@ -3390,12 +3590,7 @@ const executionScript = (communicationKey) => {
 
       'ytd-playlist-panel-renderer::attached': (hostElement) => {
 
-        if (hostElement instanceof HTMLElement) {
-          const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
-          if (!hasFlexyParent) return;
-          const currentFlexy = elements.flexy;
-          if (currentFlexy && currentFlexy !== hasFlexyParent) return;
-        }
+        if (invalidFlexyParent(hostElement)) return;
 
         // if (inPageRearrange) return;
 
@@ -4728,6 +4923,10 @@ const styles = {
   }
   */
 
+  #tab-info [show-expand-button] #expand-sizer.ytd-text-inline-expander{
+    visibility: initial;
+  }
+
 
   #tab-info #social-links.style-scope.ytd-video-description-infocards-section-renderer > #left-arrow-container.ytd-video-description-infocards-section-renderer > #left-arrow{
     border: 6px solid transparent;
@@ -4874,7 +5073,21 @@ const styles = {
 
   secondary-wrapper #content.ytd-engagement-panel-section-list-renderer ytd-transcript-segment-list-renderer.ytd-transcript-search-panel-renderer {
     flex-grow: 1;
+    contain: strict;
   }
+
+  secondary-wrapper #content.ytd-engagement-panel-section-list-renderer ytd-transcript-segment-renderer.style-scope.ytd-transcript-segment-list-renderer {
+    contain: layout paint style;
+  }
+
+  secondary-wrapper #content.ytd-engagement-panel-section-list-renderer ytd-transcript-segment-renderer.style-scope.ytd-transcript-segment-list-renderer > .segment {
+    contain: layout paint style;
+  }
+
+
+
+  
+
 
 
   body ytd-watch-flexy[theater] #secondary.ytd-watch-flexy {
@@ -4908,9 +5121,13 @@ const styles = {
   }
   */
 
+  #tab-info > ytd-expandable-video-description-body-renderer {
+    margin-bottom: var(--ytd-margin-3x);
+  }
+
   #tab-info [class]:last-child {
-    margin-bottom:0;
-    padding-bottom:0;
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
 
