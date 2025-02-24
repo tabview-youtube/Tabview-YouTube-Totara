@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.052
+// @version               5.0.053
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3344,6 +3344,8 @@ const executionScript = (communicationKey) => {
                 await Promise.resolve('#').catch(console.warn);
                 if (t !== ath) return;
               }
+              await new Promise(resolve => setTimeout_(resolve, 1)).catch(console.warn); // neccessary for Brave
+              if (t !== ath) return;
               const isBlankPage = !this.data || this.collapsed;
               const p1 = new Promise(resolve => setTimeout_(resolve, 706)).catch(console.warn);
               const p2 = new Promise(resolve => {
