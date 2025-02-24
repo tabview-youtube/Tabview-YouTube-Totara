@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.051
+// @version               5.0.052
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -114,8 +114,6 @@ const executionScript = (communicationKey) => {
     console.log(`trustHTMLErr`, trustHTMLErr);
     trustHTMLErr(); // exit userscript
   }
-
-  const setTimeout_ = setTimeout.bind(window);
 
   try {
 
@@ -331,6 +329,8 @@ const executionScript = (communicationKey) => {
     const delayPn = delay => new Promise((fn => setTimeout(fn, delay)));
 
     const insp = o => o ? (o.polymerController || o.inst || o || 0) : (o || 0);
+
+    const setTimeout_ = setTimeout.bind(window);
 
     const PromiseExternal = ((resolve_, reject_) => {
       const h = (resolve, reject) => { resolve_ = resolve; reject_ = reject };
@@ -3344,12 +3344,13 @@ const executionScript = (communicationKey) => {
                 await Promise.resolve('#').catch(console.warn);
                 if (t !== ath) return;
               }
+              const isBlankPage = !this.data || this.collapsed;
               const p1 = new Promise(resolve => setTimeout_(resolve, 706)).catch(console.warn);
               const p2 = new Promise(resolve => {
                 (new IntersectionObserver((entries, observer) => {
                   for (const entry of entries) {
                     const rect = entry.boundingClientRect || 0;
-                    if (rect.width > 0 && rect.height > 0) {
+                    if (isBlankPage || (rect.width > 0 && rect.height > 0)) {
                       observer.disconnect();
                       resolve('#');
                       break;
