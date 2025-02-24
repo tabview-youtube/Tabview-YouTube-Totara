@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.050
+// @version               5.0.051
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -114,6 +114,8 @@ const executionScript = (communicationKey) => {
     console.log(`trustHTMLErr`, trustHTMLErr);
     trustHTMLErr(); // exit userscript
   }
+
+  const setTimeout_ = setTimeout.bind(window);
 
   try {
 
@@ -3335,39 +3337,33 @@ const executionScript = (communicationKey) => {
           cProto.urlChanged66 = cProto.urlChanged;
           let ath = 0;
           cProto.urlChangedAsync12 = async function () {
-            // const isInLastDomAction = Date.now() - lastDomAction < 400;
-            // console.log('chat868-urlChangedRequest1', Date.now());
-            if (ath > 1e9) ath = 9;
-            const t = ++ath;
+            const t = ath = (ath & 1073741823) + 1;
             const chatframe = this.chatframe || (this.$ || 0).chatframe || 0;
-            if (chatframe) {
-              if (chatframe.contentDocument === null) await Promise.resolve('#').catch(console.warn);
-              if (t !== ath) return;
-              await (new Promise(r => window.setTimeout.call(window, r, '1')).catch(console.warn));
-              if (t !== ath) return;
-
-              // urlChange for front page only
-              await new Promise(resolve => {
-                (new IntersectionObserver((_, observer) => {
-                  observer.disconnect();
-                  resolve('#');
+            if (chatframe instanceof HTMLIFrameElement) {
+              if (chatframe.contentDocument === null) {
+                await Promise.resolve('#').catch(console.warn);
+                if (t !== ath) return;
+              }
+              const p1 = new Promise(resolve => setTimeout_(resolve, 706)).catch(console.warn);
+              const p2 = new Promise(resolve => {
+                (new IntersectionObserver((entries, observer) => {
+                  for (const entry of entries) {
+                    const rect = entry.boundingClientRect || 0;
+                    if (rect.width > 0 && rect.height > 0) {
+                      observer.disconnect();
+                      resolve('#');
+                      break;
+                    }
+                  }
                 })).observe(chatframe);
-              });
+              }).catch(console.warn);
+              await Promise.race([p1, p2]);
               if (t !== ath) return;
-              // if (document.visibilityState === 'hidden') {
-              //   await getRafPromise();
-              //   if (t !== ath) return;
-              // }
             }
-            // const delay = isInLastDomAction ? 136 : 0;
-            // console.log('chat868-urlChangedRequest2', Date.now());
-            // await (delay > 0 ? delayPn(delay) : Promise.resolve());
-            // if (t !== ath) return;
-            // console.log('chat868-urlChangedRequest3', Date.now());
             this.urlChanged66();
           }
           cProto.urlChanged = function () {
-              this.urlChangedAsync12();
+            this.urlChangedAsync12();
           }
         }
 
