@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.053
+// @version               5.0.054
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2270,7 +2270,7 @@ const executionScript = (communicationKey) => {
       if(ytdFlexyElm && typeof ytdFlexyElm.videoId === 'string') return ytdFlexyElm.videoId;
       console.log('video id not found');
       return '';
-    }
+    };
 
     const holdInlineExpanderAlwaysExpanded = (inlineExpanderCnt) => {
       console.log('holdInlineExpanderAlwaysExpanded')
@@ -2283,28 +2283,32 @@ const executionScript = (communicationKey) => {
         inlineExpanderCnt.expandButton = null;
         inlineExpanderCnt.expandButton.remove();
       }
-    }
+    };
+
+    const fixInlineExpanderDisplay = (inlineExpanderCnt) => {
+      try {
+        inlineExpanderCnt.updateIsAttributedExpanded();
+      } catch (e) { }
+      try {
+        inlineExpanderCnt.updateIsFormattedExpanded();
+      } catch (e) { }
+      try {
+        inlineExpanderCnt.updateTextOnSnippetTypeChange();
+      } catch (e) { }
+      try {
+        inlineExpanderCnt.updateStyles();
+      } catch (e) { }
+    };
 
     const fixInlineExpanderMethods = (inlineExpanderCnt) => {
       if (inlineExpanderCnt && !inlineExpanderCnt.__$$idncjk8487$$__) {
         inlineExpanderCnt.__$$idncjk8487$$__ = true;
         inlineExpanderCnt.updateTextOnSnippetTypeChange = function () {
-          true || this.isResetMutation && this.mutationCallback()
+          true || this.isResetMutation && this.mutationCallback();
         }
         // inlineExpanderCnt.hasAttributedStringText = true;
         inlineExpanderCnt.isResetMutation = true;
-        try {
-          inlineExpanderCnt.updateIsAttributedExpanded();
-        } catch (e) { }
-        try {
-          inlineExpanderCnt.updateIsFormattedExpanded();
-        } catch (e) { }
-        try {
-          inlineExpanderCnt.updateTextOnSnippetTypeChange()
-        } catch (e) { }
-        try {
-          inlineExpanderCnt.updateStyles();
-        } catch (e) { }
+        fixInlineExpanderDisplay(inlineExpanderCnt); // do the initial fix
       }
     };
 
@@ -2594,6 +2598,8 @@ const executionScript = (communicationKey) => {
       },
 
       'fixForTabDisplay': (isResize) => {
+        // isResize is true if the layout is resized (not due to tab switching)
+        // youtube components shall handle the resize issue. can skip some checkings.
 
         bFixForResizedTabLater = false;
         for (const element of document.querySelectorAll('[io-intersected]')) {
@@ -2605,14 +2611,25 @@ const executionScript = (communicationKey) => {
           }
         }
 
-        if (!isResize) {
-          for (const element of document.querySelectorAll('ytd-video-description-infocards-section-renderer, yt-chip-cloud-renderer, ytd-horizontal-card-list-renderer')) {
+        if (!isResize && lastTab === '#tab-info') {
+          // #tab-info is now shown.
+          // to fix the sizing issue (description info cards in tab info)
+          for (const element of document.querySelectorAll('#tab-info ytd-video-description-infocards-section-renderer, #tab-info yt-chip-cloud-renderer, #tab-info ytd-horizontal-card-list-renderer')) {
             const cnt = insp(element);
             if (element instanceof HTMLElement_ && typeof cnt.notifyResize === 'function') {
               try {
                 cnt.notifyResize();
               } catch (e) { }
             }
+          }
+          // to fix expand/collapse sizing issue (inline-expander in tab info)
+          // for example, expand button is required but not shown as it was rendered in the hidden state
+          for (const element of document.querySelectorAll('#tab-info ytd-text-inline-expander')) {
+            const cnt = insp(element);
+            if (element instanceof HTMLElement_ && typeof cnt.resize === 'function') {
+              cnt.resize(false); // reflow due to offsetWidth calling
+            }
+            fixInlineExpanderDisplay(cnt); // just in case
           }
         }
 
@@ -3125,24 +3142,11 @@ const executionScript = (communicationKey) => {
               if (p) fixInlineExpanderContent();
             });
             mo.observe(inlineExpanderElm, { attributes: ['is-expanded', 'attr-6v8qu', 'hidden'], subtree: true }); // hidden + subtree to trigger the fn by delayedUpdate
-            hostElement.incAttribute111('attr-6v8qu');
+            inlineExpanderElm.incAttribute111('attr-6v8qu');
             const cnt = insp(inlineExpanderElm);
-            if (cnt) {
 
-              try {
-                cnt.updateIsAttributedExpanded();
-              } catch (e) { }
-              try {
-                cnt.updateIsFormattedExpanded();
-              } catch (e) { }
-              try {
-                cnt.updateTextOnSnippetTypeChange()
-              } catch (e) { }
-              try {
-                cnt.updateStyles();
-              } catch (e) { }
+            if (cnt) fixInlineExpanderDisplay(cnt);
 
-            }
           }
 
 
