@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.054
+// @version               5.0.055
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
 // @match                 https://www.youtube.com/*
 
-// @author                CY Fung
+// @name:zh-TW            Tabview YouTube Totara
+// @name:ja               Tabview YouTube Totara
 // @description           To make tabs for Info, Comments, Videos and Playlist
 
 // @description:es        Para crear pestañas para Información, Comentarios, Videos y Lista de reproducción
