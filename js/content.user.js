@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.055
+// @version               5.0.056
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2569,7 +2569,7 @@ const executionScript = (communicationKey) => {
       return true;
     };
 
-    const invalidFlexyParent = (hostElement)=>{
+    const invalidFlexyParent = (hostElement) => {
       if (hostElement instanceof HTMLElement) {
         const hasFlexyParent = HTMLElement.prototype.closest.call(hostElement, 'ytd-watch-flexy');  // eg short
         if (!hasFlexyParent) return true;
@@ -3090,7 +3090,7 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-expandable-video-description-body-renderer::attached': async (hostElement)=>{
+      'ytd-expandable-video-description-body-renderer::attached': async (hostElement) => {
 
 
         if(hostElement instanceof HTMLElement_ && isPageDOM(hostElement,'[tyt-info-renderer]') && !hostElement.matches('[tyt-main-info]')){
@@ -3226,7 +3226,7 @@ const executionScript = (communicationKey) => {
 
       },
 
-      'ytd-expandable-video-description-body-renderer::detached': async ()=>{
+      'ytd-expandable-video-description-body-renderer::detached': async (hostElement) => {
         if (!(hostElement instanceof HTMLElement_) || hostElement.closest('noscript')) return;
         if (hostElement.isConnected !== false) return;
         // if (hostElement.__connectedFlg__ !== 8) return;
