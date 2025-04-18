@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.056
+// @version               5.0.057
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2579,6 +2579,17 @@ const executionScript = (communicationKey) => {
       return false;
     }
 
+    // const mutationComment = document.createComment('1');
+    // let mutationPromise = new PromiseExternal();
+    // const mutationPromiseObs = new MutationObserver(()=>{
+    //   mutationPromise.resolve();
+    //   mutationPromise = new PromiseExternal();
+    // });
+    // mutationPromiseObs.observe(mutationComment, {characterData: true});
+
+    let headerMutationObserver = null;
+    let headerMutationTmpNode = null;
+
     const eventMap = {
 
       'ceHack': () => {
@@ -2941,12 +2952,11 @@ const executionScript = (communicationKey) => {
         // hostElement.__connectedFlg__ = 9;
         console.log(12992, 'ytd-comments-header-renderer::detached')
         if (hostElement.hasAttribute000('field-of-cm-count')) {
+          hostElement.removeAttribute000('field-of-cm-count');
 
           const cmCount = document.querySelector('#tyt-cm-count');
-          if (cmCount) {
+          if (cmCount && !document.querySelector('#tab-comments ytd-comments-header-renderer[field-of-cm-count]')) {
             cmCount.textContent = '';
-            hostElement.removeAttribute000('field-of-cm-count');
-
           }
         }
         if (hostElement.hasAttribute000('tyt-comments-header-field')) {
@@ -2973,12 +2983,24 @@ const executionScript = (communicationKey) => {
           ytdFlexyElm && ytdFlexyElm.removeAttribute000('tyt-comment-disabled');
         }
 
-        // console.log(1841, [...document.querySelectorAll('#tab-comments ytd-comments-header-renderer')], document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement, !!hostElement?.parentNode?.querySelector('[tyt-comments-header-field]'))
-
         if (hostElement.hasAttribute000('tyt-comments-header-field') && hostElement.isConnected === true) {
+          if (!headerMutationObserver) {
+            headerMutationObserver = new MutationObserver(eventMap['ytd-comments-header-renderer::deferredCounterUpdate']);
+          }
+          headerMutationObserver.observe(hostElement.parentNode, { subtree: false, childList: true })
+          if (!headerMutationTmpNode) headerMutationTmpNode = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+          const tmpNode = headerMutationTmpNode;
+          hostElement.insertAdjacentElement("afterend", tmpNode);
+          tmpNode.remove();
+        }
+      },
 
-          // console.log(1842, [...document.querySelectorAll('#tab-comments ytd-comments-header-renderer')], document.querySelector('#tab-comments ytd-comments-header-renderer') === hostElement, !!hostElement?.parentNode?.querySelector('[tyt-comments-header-field]'))
+      'ytd-comments-header-renderer::deferredCounterUpdate': () => {
 
+        const nodes = document.querySelectorAll('#tab-comments ytd-comments-header-renderer[class]');
+        if (nodes.length === 1) {
+          const hostElement = nodes[0];
+          const cnt = insp(hostElement);
           const data = cnt.data;
           let ez = '';
           if (data.commentsCount && data.commentsCount.runs && data.commentsCount.runs.length >= 1) {
