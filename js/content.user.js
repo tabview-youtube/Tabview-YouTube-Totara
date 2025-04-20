@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.104
+// @version               5.0.105
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3411,7 +3411,7 @@ const executionScript = (communicationKey) => {
             const t = this.__urlChangedAsyncT688__ = (this.__urlChangedAsyncT688__ & 1073741823) + 1;
             nextBrowserTick(() => {
               if (t !== this.__urlChangedAsyncT688__) return;
-              this.urlChanged66();
+              this.urlChangedAsync12();
             });
           }
         }
