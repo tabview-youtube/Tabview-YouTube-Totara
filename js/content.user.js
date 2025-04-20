@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.103
+// @version               5.0.104
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3457,7 +3457,7 @@ const executionScript = (communicationKey) => {
               if (cnt.isAttached === true && hostElement.isConnected === true && cnt.__urlChangedAsyncT688__ === undefined) {
                 cnt.urlChanged();
               }
-            }, 80);
+            }, 320);
           }
           Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
         } else {
