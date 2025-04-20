@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.100
+// @version               5.0.101
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -350,21 +350,21 @@ const executionScript = (communicationKey) => {
     })();
 
     // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
-    !function (e) {
-      "use strict"; if (e.nextBrowserTick) return; if (!function () {
-        if (e.postMessage && !e.importScripts && e.addEventListener) {
-          let t = !0, s = () => { t = !1 };
-          return e.addEventListener("message", s, !1), e.postMessage("", "*"), e.removeEventListener("message", s, !1), t
-        }
-      }())
-        return void console.warn("Your browser environment cannot use nextBrowserTick"); const t = (async () => { })().constructor,
-          s = ((e, s) => { const n = (t, n) => { e = t, s = n }; return class extends t { constructor(t = n) { super(t), t === n && (this.resolve = e, this.reject = s) } } })();
-      let n, r = null; do { n = `$$nextBrowserTick$$${(Math.random() + 8).toString().slice(2)}$$` } while (n in e); const o = n; e[o] = 1; e.addEventListener("message",
-        (e => { (null !== r ? (e || 0).data : 0) === o && e.source === (e.target || 1) && r.resolve(r = null) }), !1), e.nextBrowserTick = t => {
-          r || (r = new s, e.postMessage(o, "*")),
-            r.then(t).catch(console.warn)
-        }
-    }("undefined" == typeof self ? "undefined" == typeof global ? this : global : self);
+    var nextBrowserTick = void 0 !== nextBrowserTick && nextBrowserTick.version >= 2 ? nextBrowserTick : (() => {
+       "use strict"; const e = "undefined" != typeof self ? self : "undefined" != typeof global ? global : this; 
+       let t = !0; if (! function n(s) {
+         return s ? t = !1 : e.postMessage && !e.importScripts && e.addEventListener ? (e.addEventListener("message", n, !1), e.postMessage("$$$", "*"), e.removeEventListener("message", n, !1), t) : void 0 
+        }()) return void console.warn("Your browser environment cannot use nextBrowserTick");
+         const n = (async () => {})().constructor; let s = null; 
+         const o = new Map, { floor: r, random: i } = Math; let l;
+        do { l = `$$nextBrowserTick$$${(i()+8).toString().slice(2)}$$` } while (l in e); const a = l,
+        c = a.length + 9;
+        e[a] = 1;
+        e.addEventListener("message", (e => { if (0 !== o.size) { const t = (e || 0).data; if ("string" == typeof t && t.length === c && e.source === (e.target || 1)) { const e = o.get(t);
+            e && ("p" === t[0] && (s = null), o.delete(t), e()) } } }), !1); const d = (t = o) => { if (t === o) { if (s) return s; let t;
+        do { t = `p${a}${r(314159265359*i()+314159265359).toString(36)}` } while (o.has(t)); return s = new n((e => { o.set(t, e) })), e.postMessage(t, "*"), t = null, s } { let n;
+        do { n = `f${a}${r(314159265359*i()+314159265359).toString(36)}` } while (o.has(n));
+        o.set(n, t), e.postMessage(n, "*") } }; return d.version = 2, d })();
 
     // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
 
