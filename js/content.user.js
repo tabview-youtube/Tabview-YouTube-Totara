@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.102
+// @version               5.0.103
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3451,10 +3451,11 @@ const executionScript = (communicationKey) => {
             }
             chatContainer.setAttribute111('tyt-chat-container', '')
           }
-          if (chatContainer && typeof chatContainer.urlChanged === 'function') {
+          const cnt = insp(hostElement);
+          if (typeof cnt.urlChanged === 'function') {
             setTimeout_(() => {
-              if (chatContainer.__urlChangedAsyncT688__ === undefined) {
-                chatContainer.urlChanged();
+              if (cnt.isAttached === true && hostElement.isConnected === true && cnt.__urlChangedAsyncT688__ === undefined) {
+                cnt.urlChanged();
               }
             }, 80);
           }
