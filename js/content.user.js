@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.105
+// @version               5.0.106
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3379,6 +3379,7 @@ const executionScript = (communicationKey) => {
           cProto.urlChanged66 = cProto.urlChanged;
           let ath = 0;
           cProto.urlChangedAsync12 = async function () {
+            await this.__urlChangedAsyncT689__;
             const t = ath = (ath & 1073741823) + 1;
             const chatframe = this.chatframe || (this.$ || 0).chatframe || 0;
             if (chatframe instanceof HTMLIFrameElement) {
@@ -3452,13 +3453,17 @@ const executionScript = (communicationKey) => {
             chatContainer.setAttribute111('tyt-chat-container', '')
           }
           const cnt = insp(hostElement);
-          if (typeof cnt.urlChanged === 'function') {
-            setTimeout_(() => {
-              if (cnt.isAttached === true && hostElement.isConnected === true && cnt.__urlChangedAsyncT688__ === undefined) {
+          const q = cnt.__urlChangedAsyncT688__;
+          const p = cnt.__urlChangedAsyncT689__ = new PromiseExternal();
+          setTimeout_(() => {
+            if (p !== cnt.__urlChangedAsyncT689__) return;
+            if (cnt.isAttached === true && hostElement.isConnected === true) {
+              p.resolve();
+              if (q === cnt.__urlChangedAsyncT688__) {
                 cnt.urlChanged();
               }
-            }, 320);
-          }
+            }
+          }, 320);
           Promise.resolve(lockSet['layoutFixLock']).then(layoutFix);
         } else {
           console.log('Issue found in ytd-live-chat-frame::attached', chatElem, hostElement);
