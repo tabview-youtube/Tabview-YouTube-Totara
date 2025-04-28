@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.106
+// @version               5.0.107
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -3017,6 +3017,7 @@ const executionScript = (communicationKey) => {
           const hostElement = nodes[0];
           const cnt = insp(hostElement);
           const data = cnt.data;
+          if (!data) return;
           let ez = '';
           if (data.commentsCount && data.commentsCount.runs && data.commentsCount.runs.length >= 1) {
             let max = -1;
