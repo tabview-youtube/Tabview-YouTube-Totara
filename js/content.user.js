@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.109
+// @version               5.0.110
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2657,6 +2657,21 @@ const executionScript = (communicationKey) => {
               cnt.resize(false); // reflow due to offsetWidth calling
             }
             fixInlineExpanderDisplay(cnt); // just in case
+          }
+        }
+
+        if (!isResize && typeof lastTab === 'string' && lastTab.startsWith('#tab-')) {
+          const tabContent = document.querySelector('.tab-content-cld:not(.tab-content-hidden)');
+          if (tabContent) {
+            const renderers = tabContent.querySelectorAll('yt-chip-cloud-renderer');
+            for (const renderer of renderers) {
+              const cnt = insp(renderer);
+              if (typeof cnt.notifyResize === 'function') {
+                try {
+                  cnt.notifyResize();
+                } catch (e) { }
+              }
+            }
           }
         }
 
