@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.107
+// @version               5.0.108
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4515,41 +4515,6 @@ const styles = {
     padding: 0;
   }
 
-  
-    
-  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > *:empty {
-    display: none !important;
-    visibility: collapse !important;
-    overflow: hidden;
-    margin: 0px !important;
-    width: 0px;
-    height: 0px;
-    box-sizing: content-box;
-    contain:strict;
-  }
-    
-  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > ytd-continuation-item-renderer {
-    display: block !important;
-    visibility: collapse !important;
-    overflow: initial;
-    margin: 0px !important;
-    width: 1px;
-    height: 1px;
-    box-sizing: initial;
-    contain:strict;
-  }
-
-  
-  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > * > * {
-    display: none !important;
-    visibility: collapse !important;
-    overflow: hidden;
-    margin: 0px !important;
-    width: 0px;
-    height: 0px;
-    box-sizing: content-box;
-    contain:strict;
-  }
     
 
   
