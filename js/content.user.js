@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.108
+// @version               5.0.109
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4471,9 +4471,11 @@ const styles = {
     padding: 0;
   }
 
+  /*
   ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > * {
     display: none !important;
   }
+    */
 
   ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections {
     display: block !important;
@@ -4486,9 +4488,13 @@ const styles = {
     padding: 0;
   }
 
+  /*
   ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > * {
     display: none !important;
   }
+
+  */
+ 
   ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents {
     display: flex !important;
     flex-direction: row;
@@ -4502,6 +4508,7 @@ const styles = {
     padding: 0;
   }
     
+  /*
   ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments > ytd-item-section-renderer#sections > #contents > * {
     display: block !important;
     visibility: collapse !important;
@@ -4514,10 +4521,21 @@ const styles = {
     border: 0;
     padding: 0;
   }
-
-    
+    */
 
   
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments #contents {
+    --comment-pre-load-display: none;
+  }
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments #contents > *:only-of-type,
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments #contents > *:last-child {
+    --comment-pre-load-display: block;
+  }
+
+  ytd-watch-flexy:not([keep-comments-scroller]) #tab-comments.tab-content-hidden ytd-comments#comments #contents > * {
+    display: var(--comment-pre-load-display) !important;
+  }
 
   #right-tabs #material-tabs {
     position: relative;
