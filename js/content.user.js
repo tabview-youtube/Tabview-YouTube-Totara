@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.111
+// @version               5.0.112
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -692,8 +692,8 @@ const executionScript = (communicationKey) => {
       // if (!s) return;
       const content = this.content || this.$.content;
       this.canToggle = this.shouldUseNumberOfLines && (this.alwaysCollapsed || this.collapsed || this.isToggled)
-        ? this.alwaysToggleable || (content && content.offsetHeight < content.scrollHeight)
-        : this.alwaysToggleable || (content && content.scrollHeight > this.collapsedHeight)
+        ? this.alwaysToggleable || this.isToggled || (content && content.offsetHeight < content.scrollHeight)
+        : this.alwaysToggleable || this.isToggled || (content && content.scrollHeight > this.collapsedHeight)
     };
 
     const aoChatAttrChangeFn = async (lockId) => {
