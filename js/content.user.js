@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.112
+// @version               5.0.113
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -691,7 +691,7 @@ const executionScript = (communicationKey) => {
     const funcCanCollapse = function (s) {
       // if (!s) return;
       const content = this.content || this.$.content;
-      this.canToggle = this.shouldUseNumberOfLines && (this.alwaysCollapsed || this.collapsed || this.isToggled)
+      this.canToggle = this.shouldUseNumberOfLines && (this.alwaysCollapsed || this.collapsed || (this.isToggled === false))
         ? this.alwaysToggleable || this.isToggled || (content && content.offsetHeight < content.scrollHeight)
         : this.alwaysToggleable || this.isToggled || (content && content.scrollHeight > this.collapsedHeight)
     };
