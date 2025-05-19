@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.113
+// @version               5.0.114
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2642,7 +2642,7 @@ const executionScript = (communicationKey) => {
         if (!isResize && lastTab === '#tab-info') {
           // #tab-info is now shown.
           // to fix the sizing issue (description info cards in tab info)
-          for (const element of document.querySelectorAll('#tab-info ytd-video-description-infocards-section-renderer, #tab-info yt-chip-cloud-renderer, #tab-info ytd-horizontal-card-list-renderer')) {
+          for (const element of document.querySelectorAll('#tab-info ytd-video-description-infocards-section-renderer, #tab-info yt-chip-cloud-renderer, #tab-info ytd-horizontal-card-list-renderer, #tab-info yt-horizontal-list-renderer')) {
             const cnt = insp(element);
             if (element instanceof HTMLElement_ && typeof cnt.notifyResize === 'function') {
               try {
@@ -4434,13 +4434,10 @@ const styles = {
     right: 0;
     left: 0;
     contain: strict;
-
-    /*     border-right: var(--ytd-margin-6x) solid transparent; */
     padding-top: var(--ytd-margin-6x);
     padding-right: var(--ytd-margin-6x);
     padding-bottom: var(--ytd-margin-6x);
   }
-
 
 
   #right-tabs {
