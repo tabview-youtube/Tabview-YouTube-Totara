@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.114
+// @version               5.0.115
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -188,7 +188,7 @@ const executionScript = (communicationKey) => {
       return v;
     }
 
-    Element.prototype.assignChildern111 = function (previousSiblings, node, nextSiblings) {
+    Element.prototype.assignChildren111 = function (previousSiblings, node, nextSiblings) {
       // assume all previousSiblings, node, and nextSiblings are on the page
       //  -> only remove triggering is needed
       let nodeList = [];
@@ -1211,7 +1211,7 @@ const executionScript = (communicationKey) => {
     
         // for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling) node.remove();
     
-        // infoExpander.parentNode.assignChildern111(null, infoExpander, [...clones]);
+        // infoExpander.parentNode.assignChildren111(null, infoExpander, [...clones]);
         let removal = [];
         for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling)removal.push(node);
         for(const node of removal) node.remove();
@@ -1553,7 +1553,7 @@ const executionScript = (communicationKey) => {
 
       if (requiredUpdate) {
         if (infoExpander) {
-          targetParent.assignChildern111(null, infoExpander, mirroElmArr);
+          targetParent.assignChildren111(null, infoExpander, mirroElmArr);
         } else {
           targetParent.replaceChildren000(...mirroElmArr);
         }
@@ -2870,7 +2870,7 @@ const executionScript = (communicationKey) => {
 
         // if(!elements.comments || elements.comments.isConnected === false) return;
         if (hostElement && !hostElement.closest('#right-tabs')) {
-          document.querySelector('#tab-comments').assignChildern111(null, hostElement, null);
+          document.querySelector('#tab-comments').assignChildren111(null, hostElement, null);
         } else {
 
           const shouldTabVisible = elements.comments && elements.comments.closest('#tab-comments') && !elements.comments.closest('[hidden]');
@@ -3206,7 +3206,7 @@ const executionScript = (communicationKey) => {
 
 
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
-            document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+            document.querySelector('#tab-info').assignChildren111(null, infoExpander, null);
           } else {
 
             if (document.querySelector('[tyt-tab-content="#tab-info"]')) {
@@ -3249,7 +3249,7 @@ const executionScript = (communicationKey) => {
             bodyRendererNew.setAttribute('tyt-info-renderer', '');
             nsTemplateObtain().appendChild(bodyRendererNew);
           }
-          // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+          // document.querySelector('#tab-info').assignChildren111(null, bodyRendererNew, null);
 
           
           const cnt = insp(bodyRendererNew);
@@ -3325,7 +3325,7 @@ const executionScript = (communicationKey) => {
         //     bodyRendererNew.setAttribute('tyt-info-renderer', '');
         //     nsTemplateObtain().appendChild(bodyRendererNew);
         //   }
-        //   // document.querySelector('#tab-info').assignChildern111(null, bodyRendererNew, null);
+        //   // document.querySelector('#tab-info').assignChildren111(null, bodyRendererNew, null);
 
         //   insp(bodyRendererNew).data = insp(bodyRenderer).data;
         //   // if((bodyRendererNew.hasAttribute('hidden')?1:0)^(bodyRenderer.hasAttribute('hidden')?1:0)){
@@ -3745,11 +3745,11 @@ const executionScript = (communicationKey) => {
 
         const related = elements.related;
         if (related && related.isConnected && !related.closest('#right-tabs #tab-videos')) {
-          document.querySelector('#tab-videos').assignChildern111(null, related, null);
+          document.querySelector('#tab-videos').assignChildren111(null, related, null);
         }
         const infoExpander = elements.infoExpander;
         if (infoExpander && infoExpander.isConnected && !infoExpander.closest('#right-tabs #tab-info')) {
-          document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+          document.querySelector('#tab-info').assignChildren111(null, infoExpander, null);
         } else {
           // if (infoExpander && ytdFlexyElm && shouldFixInfo) {
           //   shouldFixInfo = false;
@@ -3762,7 +3762,7 @@ const executionScript = (communicationKey) => {
           const isConnected = commentsArea.isConnected;
           if (isConnected && !commentsArea.closest('#right-tabs #tab-comments')) {
             const tab = document.querySelector('#tab-comments');
-            tab.assignChildern111(null, commentsArea, null);
+            tab.assignChildren111(null, commentsArea, null);
           } else {
             // if (!isConnected || tab.classList.contains('tab-content-hidden')) removeKeepCommentsScroller();
           }
@@ -3857,15 +3857,15 @@ const executionScript = (communicationKey) => {
             ioTabBtns.observe(btn);
           }
           if (!related.closest('#right-tabs')) {
-            document.querySelector('#tab-videos').assignChildern111(null, related, null);
+            document.querySelector('#tab-videos').assignChildren111(null, related, null);
           }
           const infoExpander = elements.infoExpander;
           if (infoExpander && !infoExpander.closest('#right-tabs')) {
-            document.querySelector('#tab-info').assignChildern111(null, infoExpander, null);
+            document.querySelector('#tab-info').assignChildren111(null, infoExpander, null);
           }
           const commentsArea = elements.comments;
           if (commentsArea && !commentsArea.closest('#right-tabs')) {
-            document.querySelector('#tab-comments').assignChildern111(null, commentsArea, null);
+            document.querySelector('#tab-comments').assignChildren111(null, commentsArea, null);
           }
           rightTabsProvidedPromise.resolve();
           roRightTabs.disconnect();
