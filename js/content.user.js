@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.115
+// @version               5.0.116
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4631,6 +4631,12 @@ const styles = {
       transition: none;
       animation: none;
   }
+
+  /* emojis box size correction */
+  #right-tabs #emojis.ytd-commentbox {
+      inset: auto 0px auto 0px;
+      width: auto;
+  }    
 
   ytd-watch-flexy[is-two-columns_] #right-tabs .tab-content-cld {
       height: 100%;
