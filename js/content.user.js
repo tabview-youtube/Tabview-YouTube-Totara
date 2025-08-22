@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.116
+// @version               5.0.117
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -93,6 +93,8 @@ const VAL_ROUNDED_A1 = 12;
 const executionScript = (communicationKey) => {
 
   const DEBUG_5084 = false;
+  const DEBUG_5085 = false;
+  const TAB_AUTO_SWITCH_TO_COMMENTS = false;
 
 
   if (typeof trustedTypes !== 'undefined' && trustedTypes.defaultPolicy === null) {
@@ -1615,10 +1617,10 @@ const executionScript = (communicationKey) => {
 
             // setTimeout(() => chatCnt.urlChanged, 136);
             if (typeof chatCnt.urlChangedAsync12 === 'function') {
-              console.log('elements.chat urlChangedAsync12', 61);
+              DEBUG_5085 && console.log('elements.chat urlChangedAsync12', 61);
               chatCnt.urlChanged();
             } else {
-              console.log('elements.chat urlChangedAsync12', 62);
+              DEBUG_5085 && console.log('elements.chat urlChangedAsync12', 62);
               setTimeout(() => chatCnt.urlChanged(), 136);
             }
           }
@@ -2866,7 +2868,7 @@ const executionScript = (communicationKey) => {
 
         if (elements.comments !== hostElement) return;
         if (hostElement.isConnected === false) return;
-        console.log(7932, 'comments');
+        DEBUG_5085 && console.log(7932, 'comments');
 
         // if(!elements.comments || elements.comments.isConnected === false) return;
         if (hostElement && !hostElement.closest('#right-tabs')) {
@@ -2883,6 +2885,8 @@ const executionScript = (communicationKey) => {
           Promise.resolve(lockSet['removeKeepCommentsScrollerLock']).then(removeKeepCommentsScroller).catch(console.warn);
 
         }
+
+        TAB_AUTO_SWITCH_TO_COMMENTS && switchToTab('#tab-comments'); 
 
       },
       'ytd-comments::detached': (hostElement) => {
@@ -4185,10 +4189,10 @@ const executionScript = (communicationKey) => {
         const kTab = document.querySelector('[tyt-tab]');
         const qTab = (!kTab || kTab.getAttribute('tyt-tab') === '') ? checkElementExist('ytd-watch-flexy[is-two-columns_]', '[hidden]') : null;
         if (checkElementExist('ytd-playlist-panel-renderer#playlist', '[hidden], [collapsed]')) {
-          console.log('fixInitialTabStateFn 1p');
+          DEBUG_5085 && console.log('fixInitialTabStateFn 1p');
           switchToTab(null);
         } else if (checkElementExist('ytd-live-chat-frame#chat', '[hidden], [collapsed]')) {
-          console.log('fixInitialTabStateFn 1a');
+          DEBUG_5085 && console.log('fixInitialTabStateFn 1a');
           switchToTab(null);
           if (checkElementExist('ytd-watch-flexy[theater]', '[hidden]')) {
             ytBtnCollapseChat();
@@ -4196,7 +4200,7 @@ const executionScript = (communicationKey) => {
         } else if (qTab) {
           const hasTheater = qTab.hasAttribute('theater');
           if (!hasTheater) {
-            console.log('fixInitialTabStateFn 1b');
+            DEBUG_5085 && console.log('fixInitialTabStateFn 1b');
             const btn0 = document.querySelector('.tab-btn-visible') // or default button
             if (btn0) {
               switchToTab(btn0);
@@ -4204,11 +4208,11 @@ const executionScript = (communicationKey) => {
               switchToTab(null);
             }
           } else {
-            console.log('fixInitialTabStateFn 1c');
+            DEBUG_5085 && console.log('fixInitialTabStateFn 1c');
             switchToTab(null);
           }
         } else {
-          console.log('fixInitialTabStateFn 1z');
+          DEBUG_5085 && console.log('fixInitialTabStateFn 1z');
         }
         // console.log('fixInitialTabStateFn 0d');
         fixInitialTabStateK++;
