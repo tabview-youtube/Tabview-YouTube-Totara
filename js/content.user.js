@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.117
+// @version               5.0.118
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -971,8 +971,34 @@ const executionScript = (communicationKey) => {
       }
     }
 
+    function getSuitableElement(selector) {
+      const elements = document.querySelectorAll(selector);
+      let j = -1, h = -1;
+      for (let i = 0, l = elements.length; i < l; i++) {
+        let d = elements[i].getElementsByTagName("*").length;
+        if (d > h) {
+          h = d;
+          j = i;
+        }
+      }
+      return j >= 0 ? elements[j] : null;
+    }
 
     function ytBtnExpandChat() {
+      const dom = getSuitableElement('ytd-live-chat-frame#chat');
+      const cnt = insp(dom);
+      if (cnt && typeof cnt.collapsed === "boolean") {
+        if (typeof cnt.setCollapsedState === "function") {
+          cnt.setCollapsedState({
+            setLiveChatCollapsedStateAction: {
+              collapsed: false
+            }
+          });
+          if (cnt.collapsed === false) return;
+        }
+        cnt.collapsed = false;
+        if (cnt.collapsed === false) return;
+      }
       let button = document.querySelector('ytd-live-chat-frame#chat[collapsed] > .ytd-live-chat-frame#show-hide-button')
       if (button) {
         button =
@@ -983,6 +1009,20 @@ const executionScript = (communicationKey) => {
     }
 
     function ytBtnCollapseChat() {
+      const dom = getSuitableElement('ytd-live-chat-frame#chat');
+      const cnt = insp(dom);
+      if (cnt && typeof cnt.collapsed === "boolean") {
+        if (typeof cnt.setCollapsedState === "function") {
+          cnt.setCollapsedState({
+            setLiveChatCollapsedStateAction: {
+              collapsed: true
+            }
+          });
+          if (cnt.collapsed === true) return;
+        }
+        cnt.collapsed = true;
+        if (cnt.collapsed === true) return;
+      }
       let button = document.querySelector('ytd-live-chat-frame#chat:not([collapsed]) > .ytd-live-chat-frame#show-hide-button')
       if (button) {
         button =
