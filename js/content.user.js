@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.118
+// @version               5.0.119
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -998,6 +998,10 @@ const executionScript = (communicationKey) => {
         }
         cnt.collapsed = false;
         if (cnt.collapsed === false) return;
+        if (cnt.isHiddenByUser === true && cnt.collapsed === true) {
+          cnt.isHiddenByUser = false;
+          cnt.collapsed = false;
+        }
       }
       let button = document.querySelector('ytd-live-chat-frame#chat[collapsed] > .ytd-live-chat-frame#show-hide-button')
       if (button) {
@@ -1022,6 +1026,10 @@ const executionScript = (communicationKey) => {
         }
         cnt.collapsed = true;
         if (cnt.collapsed === true) return;
+        if (cnt.isHiddenByUser === false && cnt.collapsed === false) {
+          cnt.isHiddenByUser = true;
+          cnt.collapsed = true;
+        }
       }
       let button = document.querySelector('ytd-live-chat-frame#chat:not([collapsed]) > .ytd-live-chat-frame#show-hide-button')
       if (button) {
@@ -1108,7 +1116,7 @@ const executionScript = (communicationKey) => {
     function ytBtnCloseEngagementPanels() {
       if (isEngagementPanelExpanded()) {
         for (const s of document.querySelectorAll(
-          `ytd-watch-flexy[flexy][tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
+          `ytd-watch-flexy[tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
         )) {
           if (s.getAttribute('visibility') == "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") ytBtnCloseEngagementPanel(s);
         }
@@ -1121,7 +1129,7 @@ const executionScript = (communicationKey) => {
 
       const actions = [];
       for (const panelElm of document.querySelectorAll(
-        `ytd-watch-flexy[flexy][tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
+        `ytd-watch-flexy[tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
       )) {
         if (panelElm.getAttribute('visibility') == "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED" && !panelElm.closest('[hidden]')) {
           actions.push({
@@ -3782,7 +3790,7 @@ const executionScript = (communicationKey) => {
         //   ytdFlexyElm.removeAttribute000('fixed-panels');
         // }
 
-        if (ytdFlexyElm && ytdFlexyElm.matches('ytd-watch-flexy[theater][flexy][full-bleed-player]:not([full-bleed-no-max-width-columns])')) {
+        if (ytdFlexyElm && ytdFlexyElm.matches('ytd-watch-flexy[theater][full-bleed-player]:not([full-bleed-no-max-width-columns])')) {
           // ytdFlexyElm.fullBleedNoMaxWidthColumns = true;
           ytdFlexyElm.setAttribute111('full-bleed-no-max-width-columns', '');
         }
@@ -4614,7 +4622,7 @@ const styles = {
     border-radius: var(--tyt-rounded-a1) var(--tyt-rounded-a1) 0 0;
   }
 
-  ytd-watch-flexy[flexy]:not([is-two-columns_]) #right-tabs #material-tabs {
+  ytd-watch-flexy:not([is-two-columns_]) #right-tabs #material-tabs {
       outline: 0;
   }
 
