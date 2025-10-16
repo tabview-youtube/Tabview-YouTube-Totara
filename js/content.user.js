@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.119
+// @version               5.0.120
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -94,6 +94,7 @@ const executionScript = (communicationKey) => {
 
   const DEBUG_5084 = false;
   const DEBUG_5085 = false;
+  const DEBUG_handleNavigateFactory = false;
   const TAB_AUTO_SWITCH_TO_COMMENTS = false;
 
 
@@ -675,19 +676,52 @@ const executionScript = (communicationKey) => {
 
     const infoExpanderElementProvidedPromise = new PromiseExternal();
 
-    const cmAttr = document.createComment('1');
-    const cmAttrStack = [];
-    const cmAttrStackPush = (f) => {
-      cmAttrStack.push(f);
-      cmAttr.data = `${(cmAttr.data & 7) + 1}`;
-    }
-    const cmAttrObs = new MutationObserver(() => {
-      const l = cmAttrStack.length;
-      for (let i = 0; i < l; i++) {
-        cmAttrStack[i]();
+    const pluginsDetected = {}
+    const pluginDetectObserver = new MutationObserver((mutations)=>{
+      let changeOnRoot = false;
+      let newPlugins = [];
+      const attributeChangedSet = new Set();
+      for (const mutation of mutations) {
+        if (mutation.target === document) changeOnRoot = true;
+        let detected = "";
+        switch (mutation.attributeName) {
+          case "data-ytlstm-new-layout":
+          case "data-ytlstm-overlay-text-shadow":
+          case "data-ytlstm-theater-mode":
+            detected = "external.ytlstm"; // YouTube Livestreams Theater Mode
+            attributeChangedSet.add(detected);
+            break;
+        }
+        if (detected && !pluginsDetected[detected]) {
+          pluginsDetected[detected] = true;
+          newPlugins.push(detected);
+        }
+      }
+      if (elements.flexy && attributeChangedSet.has("external.ytlstm")) {
+        elements.flexy.setAttribute("tyt-external-ytlstm",
+          document.querySelector("[data-ytlstm-theater-mode]") ? "1" : "0"
+        );
+      }
+      if (changeOnRoot) {
+        // prevent change of document.body
+        pluginDetectObserver.observe(document.body, { attributes: true });
+      }
+      for (const detected of newPlugins) {
+        const pluginItem = plugin[`${detected}`];
+        if (pluginItem) {
+          pluginItem.activate();
+        } else {
+          console.warn(`No Plugin Activator for ${detected}`)
+        }
       }
     });
-    cmAttrObs.observe(cmAttr, { characterData: true });
+
+    pluginDetectObserver.observe(document.documentElement, { attributes: true });
+    if (document.body) pluginDetectObserver.observe(document.body, { attributes: true });
+    navigateFinishedPromise.then(()=>{
+      pluginDetectObserver.observe(document.documentElement, { attributes: true });
+      if (document.body) pluginDetectObserver.observe(document.body, { attributes: true });
+    });
 
 
     const funcCanCollapse = function (s) {
@@ -734,16 +768,26 @@ const executionScript = (communicationKey) => {
       const playlistElm = elements.playlist;
       const ytdFlexyElm = elements.flexy;
       // console.log(1882, chatElm, ytdFlexyElm)
+      let doAttributeChange = 0;
       if (playlistElm && ytdFlexyElm) {
-        if (playlistElm.hasAttribute000('collapsed')) {
-          ytdFlexyElm.removeAttribute000('tyt-playlist-expanded')
+        if (playlistElm.closest("[hidden]")) {
+          doAttributeChange = 2;
+        } else if (playlistElm.hasAttribute000('collapsed')) {
+          doAttributeChange = 2;
         } else {
-
-          ytdFlexyElm.setAttribute111('tyt-playlist-expanded', '')
+          doAttributeChange = 1;
         }
       }else if(ytdFlexyElm){
-
-        ytdFlexyElm.removeAttribute000('tyt-playlist-expanded')
+        doAttributeChange = 2;
+      }
+      if (doAttributeChange === 1) {
+        if (ytdFlexyElm.getAttribute000('tyt-playlist-expanded') !== "") {
+          ytdFlexyElm.setAttribute111('tyt-playlist-expanded', '')
+        }
+      } else if (doAttributeChange === 2) {
+        if (ytdFlexyElm.hasAttribute000('tyt-playlist-expanded')) {
+          ytdFlexyElm.removeAttribute000('tyt-playlist-expanded');
+        }
       }
     };
 
@@ -939,14 +983,16 @@ const executionScript = (communicationKey) => {
         if (!ytdFlexyElm.hasAttribute000('tyt-egm-panel_')) r -= 32;
       }
       if (flag & 64) {
-
         r |= 64;
         if (!document.fullscreenElement) r -= 64;
       }
-
       if (flag & 128) {
         r |= 128;
         if (!ytdFlexyElm.hasAttribute000('tyt-playlist-expanded')) r -= 128;
+      }
+      if (flag & 4096) {
+        r |= 4096;
+        if (ytdFlexyElm.getAttribute('tyt-external-ytlstm') !== "1") r -= 4096;
       }
       return r;
 
@@ -1158,30 +1204,6 @@ const executionScript = (communicationKey) => {
     }
 
     const updateChatLocation498 = function () {
-      /*
-   
-              updateChatLocation: function() {
-              if (this.is !== "ytd-watch-grid" && y("web_watch_theater_chat")) {
-                  var a = T(this.hostElement).querySelector("#chat-container")
-                    , b = this.theater && (!this.fullscreen || y("web_watch_fullscreen_panels"));
-                  this.watchWhileWindowSizeSufficient && this.liveChatPresentAndExpanded && b ? y("web_watch_theater_chat_beside_player") ? (b = T(this.hostElement).querySelector("#panels-full-bleed-container"),
-                  (a == null ? void 0 : a.parentElement) !== b && b.append(a),
-                  this.panelsBesidePlayer = !0) : y("web_watch_theater_fixed_chat") && (b = T(this.hostElement).querySelector("#columns"),
-                  (a == null ? void 0 : a.parentElement) !== b && b.append(a),
-                  this.fixedPanels = !0) : (y("web_watch_theater_chat_beside_player") ? this.panelsBesidePlayer = !1 : y("web_watch_theater_fixed_chat") && (this.fixedPanels = !1),
-                  b = T(this.hostElement).querySelector("#playlist"),
-                  a && b ? Fh(a, b) : Gm(new zk("Missing element when updating chat location",{
-                      "chatContainer defined": !!a,
-                      "playlist defined": !!b
-                  })));
-                  this.updatePageMediaQueries();
-                  this.schedulePlayerSizeUpdate_()
-              }
-          },
-   
-          */
-
-      // console.log('updateChatLocation498')
       if (this.is !== "ytd-watch-grid") {
         this.updatePageMediaQueries();
         this.schedulePlayerSizeUpdate_()
@@ -1191,96 +1213,8 @@ const executionScript = (communicationKey) => {
 
     const mirrorNodeWS = new WeakMap();
 
-    /*
-      const infoFix = () => {
-        const infoExpander = elements.infoExpander;
-        const ytdFlexyElm = elements.flexy;
-        if (!infoExpander || !ytdFlexyElm) return;
-        console.log(386, infoExpander, infoExpander.matches('#tab-info > [class]'))
-        if (!infoExpander.matches('#tab-info > [class]')) return;
-        // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"], ytd-watch-metadata.ytd-watch-flexy ytd-metadata-row-container-renderer')].filter(elm=>{
-        //   if(elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
-        //    return true;
-        // });
-    
-    
-    
-        const requireElements = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"] > *, ytd-watch-metadata.ytd-watch-flexy #extra-content > *')].filter(elm => {
-          return typeof elm.is == 'string'
-        }).map(elm => {
-          const is = elm.is;
-          while (elm instanceof HTMLElement_) {
-            const q = [...elm.querySelectorAll(is)].filter(e => insp(e).data);
-            if (q.length >= 1) return q[0];
-            elm = elm.parentNode;
-          }
-        }).filter(elm => !!elm && typeof elm.is === 'string');
-        console.log(requireElements)
-    
-        const source = requireElements.map(entry=>({
-          data: insp(entry).data,
-          tag: insp(entry).is,
-          elm: entry
-        }))
-    
-        if (!document.querySelector('noscript#aythl')) {
-          const noscript = document.createElement('noscript')
-          noscript.id = 'aythl';
-          ytdFlexyElm.insertBefore000(noscript, ytdFlexyElm.firstChild);
-    
-        }
-        const noscript = document.querySelector('noscript#aythl');
-    
-        const clones = new Set();
-        for (const {data, tag, elm} of source) {
-    
-          // const cloneNode = document.createElement(tag);
-          let cloneNode = elm.cloneNode(true);
-          // noscript.appendChild(cloneNode);
-          // insp(cloneNode).data = null;
-          insp(cloneNode).data = data;
-          source.clone = cloneNode;
-          clones.add(cloneNode);
-        }
-    
-    
-        // const elms = [...document.querySelectorAll('ytd-watch-metadata.ytd-watch-flexy div[slot="extra-content"]')].filter(elm => {
-        //   if (elm.parentNode.closest('div[slot="extra-content"], ytd-metadata-row-container-renderer')) return false;
-        //   return true;
-        // });
-    
-        // let arr = [];
-        // for(const elm of elms){
-        //   if(elm.hasAttribute('slot')) arr.push(...elm.childNodes);
-        //   else arr.push(elm);
-        // }
-        // arr = arr.filter(e=>e && e.nodeType === 1);
-        // console.log(386,arr)
-    
-        // const clones = arr.map(e=>e.cloneNode(true));
-    
-        // for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling) node.remove();
-    
-        // infoExpander.parentNode.assignChildren111(null, infoExpander, [...clones]);
-        let removal = [];
-        for(let node = infoExpander.nextSibling; node instanceof Node; node = node.nextSibling)removal.push(node);
-        for(const node of removal) node.remove();
-        for(const node of clones) infoExpander.parentNode.appendChild(node);
-        
-    
-        for (const {data, tag, elm, clone} of source) {
-    
-          insp(clone).data = null;
-          insp(clone).data = data;
-        }
-    
-        // console.log(infoExpander.parentNode.childNodes)
-      }
-    */
-
     const dummyNode = document.createElement('noscript');
 
-    // const __j4838__ = Symbol();
     const __j4836__ = Symbol();
     const __j5744__ = Symbol(); // original element
     const __j5733__ = Symbol(); // __lastChanged__
@@ -1337,63 +1271,6 @@ const executionScript = (communicationKey) => {
 
       }
     }
-
-    /*
-    const moChangeReflection = async function (mutations) {
-  
-      const nodeWR = this;
-      const node = kRef(nodeWR);
-      if (!node) return;
-      const originElement = kRef(node[__j5744__] || null) || null;
-      if (!originElement) return;
-  
-      const cnt = insp(node);
-      const oriCnt = insp(originElement);
-  
-      if(mutations){
-  
-        let bfDataChangeCounter = false;
-        for (const mutation of mutations) {
-          if (mutation.attributeName === 'tyt-data-change-counter' && mutation.target === originElement) {
-            bfDataChangeCounter = true;
-          }
-        }
-        if(bfDataChangeCounter && oriCnt.data){
-          node.replaceWith(dummyNode);
-          cnt.data = Object.assign({}, oriCnt.data);
-          dummyNode.replaceWith(node);
-        }
-  
-      } 
-  
-      // console.log(8348, originElement)
-  
-      if (cnt.isAttached === false) {
-        // do nothing
-        // don't call infoFix() as it shall be only called in ytd-expander::attached and yt-navigate-finish
-      } else if (oriCnt.isAttached === false && cnt.isAttached === true) {
-        if (node.isConnected && node.parentNode instanceof HTMLElement_) {
-          node.parentNode.removeChild(node);
-        } else {
-          node.remove();
-        }
-        if (oriCnt.data !== null) {
-          cnt.data = null;
-        }
-      } else if (oriCnt.isAttached === true && cnt.isAttached === true) {
-        if (!oriCnt.data) {
-          if(cnt.data){
-            cnt.data = null;
-          }
-        } else if (!cnt.data || oriCnt.data[__j4838__] !== cnt.data[__j4838__]) {
-          oriCnt.data[__j4838__] = Date.now();
-          await Promise.resolve(); // required for making sufficient delay for data rendering
-          attributeInc(originElement, 'tyt-data-change-counter'); // next macro task
-        }
-      }
-  
-    };
-    */
 
     const attributeInc = (elm, prop) => {
       let v = (+elm.getAttribute000(prop) || 0) + 1;
@@ -2045,18 +1922,20 @@ const executionScript = (communicationKey) => {
       }
 
       const conditionFulfillment = (req) => {
-        const endpoint = req ? req.command : null;
-        if (!endpoint) return;
+        const command = req ? req.command : null;
+        DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 0801", command);
+        if (!command) return;
 
-        if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.watchEndpoint) {
-        } else if (endpoint && (endpoint.commandMetadata || 0).webCommandMetadata && endpoint.browseEndpoint && isChannelId(endpoint.browseEndpoint.browseId)) {
-        } else if (endpoint && (endpoint.browseEndpoint || endpoint.searchEndpoint) && !endpoint.urlEndpoint && !endpoint.watchEndpoint) {
+        if (command && (command.commandMetadata || 0).webCommandMetadata && command.watchEndpoint) {
+        } else if (command && (command.commandMetadata || 0).webCommandMetadata && command.browseEndpoint && isChannelId(command.browseEndpoint.browseId)) {
+        } else if (command && (command.browseEndpoint || command.searchEndpoint) && !command.urlEndpoint && !command.watchEndpoint) {
         } else {
           return false;
         }
 
-
+        DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 0802");
         if (!shouldUseMiniPlayer()) return false;
+        DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 0803");
 
         /*
           // user would like to switch page immediately without playing the video;
@@ -2074,10 +1953,14 @@ const executionScript = (communicationKey) => {
 
         if (pageType !== "watch") return false;
 
+        DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 0804");
 
-        if (!checkElementExist('ytd-watch-flexy #player button.ytp-miniplayer-button.ytp-button', '[hidden]')) {
-          return false;
-        }
+        // 2025.10.16 - ignore ytp-miniplayer-button existance
+        // if (!checkElementExist('ytd-watch-flexy #player button.ytp-miniplayer-button.ytp-button', '[hidden]')) {
+        //   return false;
+        // }
+
+        // DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 0805");
 
         return true;
       }
@@ -2141,11 +2024,13 @@ const executionScript = (communicationKey) => {
 
           if (conditionFulfillment(req)) {
 
-
             endpoint = getBrowsableEndPoint(req);
+
+            DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 1000", req, endpoint)
 
           }
 
+          DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 1001", req, endpoint)
 
           if (!endpoint || !shouldUseMiniPlayer()) return handleNavigate.apply($this, $arguments);
 
@@ -2161,11 +2046,14 @@ const executionScript = (communicationKey) => {
             object = null;
           }
 
+          DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 1002", object)
+
           if (typeof object !== 'object') object = null;
 
           const once = { once: true }; // browsers supporting async function can also use once option.
 
           if (object !== null && !('playlistId' in object)) {
+            DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - 1003", object)
 
             let wObject = mWeakRef(object)
 
@@ -2189,6 +2077,7 @@ const executionScript = (communicationKey) => {
 
             Object.defineProperty((kRef(wObject) || {}), 'playlistId', {
               get() {
+                DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - get", count);
                 count++;
                 if (count === N) {
                   delete this.playlistId;
@@ -2196,6 +2085,8 @@ const executionScript = (communicationKey) => {
                 return '*';
               },
               set(value) {
+
+                DEBUG_handleNavigateFactory && console.log("handleNavigateFactory - set", count, value)
                 delete this.playlistId; // remove property definition
                 this.playlistId = value; // assign as normal property
               },
@@ -2587,6 +2478,18 @@ const executionScript = (communicationKey) => {
           });
           this.promiseReady.resolve();
         }
+      },
+      "external.ytlstm": {
+        activated: false,
+        toUse: true, // depends on shouldUseMiniPlayer()
+        activate() {
+
+          if (this.activated) return;
+
+          this.activated = true;
+          document.documentElement.classList.add("external-ytlstm");
+        }
+
       }
     }
 
@@ -3883,6 +3786,7 @@ const executionScript = (communicationKey) => {
           rightTabs.querySelector('[tyt-tab-content="#tab-comments"]').classList.add('tab-btn-hidden');
 
           const secondaryWrapper = document.createElement('secondary-wrapper');
+          secondaryWrapper.classList.add("tabview-secondary-wrapper");
           const secondaryInner = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy');
           
           inPageRearrange = true;
@@ -3976,13 +3880,26 @@ const executionScript = (communicationKey) => {
         const ytdFlexyElm = elements.flexy;
         if (!ytdFlexyElm) return;
         const p = tabAStatus;
-        const q = calculationFn(p, 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128);
-
+        const q = calculationFn(p, 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 4096);
         let resetForPanelDisappeared = false;
         if (p !== q) {
           console.log(388, p, q)
           let actioned = false;
-          if ((p & 128) === 0 && (q & 128) === 128) {
+          let special = 0;
+          if (plugin["external.ytlstm"].activated) {
+            if (q & 64) {
+              // ignore fullscreen
+            } else if ((p & (1 | 2 | 4 | 8 | 16 | 4096)) === (1 | 0 | 0 | 8 | 16 | 4096) && (q & (1 | 2 | 4 | 8 | 16 | 4096)) === (1 | 0 | 4 | 0 | 16 | 4096)) {
+              special = 3;
+            } else if ((q & (1 | 16)) === (1 | 16) && document.querySelector("[data-ytlstm-theater-mode]")) {
+              special = 1;
+            } else if ((q & (1 | 8 | 16)) === (1 | 8 | 16) && document.querySelector('[is-two-columns_][theater][tyt-chat="+"]')) {
+              special = 2;
+            }
+          }
+          if (special) {
+            // special
+          } else if ((p & 128) === 0 && (q & 128) === 128) {
             lastPanel = 'playlist'
           } else if ((p & 8) === 0 && (q & 8) === 8) {
             lastPanel = 'chat'
@@ -3995,11 +3912,29 @@ const executionScript = (communicationKey) => {
             lastPanel = (lastTab || '');
             resetForPanelDisappeared = true;
           } else if ((p & 128) === 128 && (q & 128) === 0 && lastPanel === 'playlist') {
-
             lastPanel = (lastTab || '');
             resetForPanelDisappeared = true;
           }
           tabAStatus = q;
+
+          if (special) {
+            if (special === 1) {
+              if (ytdFlexyElm.getAttribute("tyt-chat") !== "+") {
+                ytBtnExpandChat();
+              }
+              if (ytdFlexyElm.getAttribute("tyt-tab")) {
+                switchToTab(null);
+              }
+            } else if (special === 2) {
+              ytBtnCollapseChat();
+            } else if (special === 3) {
+              ytBtnCancelTheater();
+              if (lastTab) {
+                switchToTab(lastTab);
+              }
+            }
+            return;
+          }
 
           let bFixForResizedTab = false;
 
@@ -4029,6 +3964,12 @@ const executionScript = (communicationKey) => {
             actioned = true;
           }
 
+          if ((p & (1 | 2 | 4 | 8 | 16 | 32 | 64 | 128)) === (1 | 2 | 0 | 8 | 16) && (q & (1 | 2 | 4 | 8 | 16 | 32 | 64 | 128)) === (0 | 2 | 0 | 8 | 16)) {
+            // external.ytlstm case
+            lastPanel = (lastTab || '');
+            ytBtnCollapseChat();
+            actioned = true;
+          }
           // p->q +128
           if ((p & (2 | 128)) === (2 | 0) && (q & (2 | 128)) === (2 | 128) && lastPanel === 'playlist') {
             switchToTab(null);
@@ -4159,6 +4100,8 @@ const executionScript = (communicationKey) => {
             }
           }
 
+          let shouldDoAutoFix = false;
+
           if ((p & 2) === 2 && (q & (2 | 128)) === (0 | 128)) {
             // p->q -2
 
@@ -4166,6 +4109,12 @@ const executionScript = (communicationKey) => {
             // p->q -8
 
           } else if (!actioned && (p & (1 | 16)) === 16 && (q & (1 | 16 | 8 | 2 | 32 | 64)) === (16 | 0 | 0)) {
+            shouldDoAutoFix = true;
+          } else if ((q & (1 | 2 | 4 | 8 | 16 | 32 | 64 | 128)) === (4 | 16)) {
+            shouldDoAutoFix = true;
+          }
+
+          if (shouldDoAutoFix) {
             console.log(388, 'd')
             if (lastPanel === 'chat') {
               console.log(388, 'd1c')
@@ -4970,15 +4919,19 @@ const styles = {
 
   }
 
+  [tyt-chat="+"] {
+        --tyt-chat-grow: 1;
+  }
+
   [tyt-chat="+"] secondary-wrapper > [tyt-chat-container]{
-      flex-grow: 1;
+      flex-grow: var(--tyt-chat-grow);
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
   }
 
   [tyt-chat="+"] secondary-wrapper > [tyt-chat-container] > #chat{
-      flex-grow: 1;
+      flex-grow: var(--tyt-chat-grow);
   }
 
   ytd-watch-flexy[is-two-columns_]:not([theater]) #columns.style-scope.ytd-watch-flexy {
@@ -5473,6 +5426,39 @@ const styles = {
   /* fix cinematics lighting issue */
   #cinematics {
     contain: layout style size;
+  }
+
+  /* plugin: external.ytlstm */
+
+
+  body[data-ytlstm-theater-mode] #secondary-inner[class] > secondary-wrapper[class]:not(#chat-container):not(#chat) {
+    display: flex !important;
+  }
+  
+  body[data-ytlstm-theater-mode] secondary-wrapper {
+    all: unset;
+    height: 100vh;
+  }
+
+  body[data-ytlstm-theater-mode] #right-tabs {
+    display: none;
+  }
+
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] [tyt-chat="+"] {
+    --tyt-chat-grow: unset;
+  }
+
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #columns.style-scope.ytd-watch-flexy,
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #secondary.style-scope.ytd-watch-flexy,
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #secondary-inner.style-scope.ytd-watch-flexy,
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] secondary-wrapper,
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #chat-container.style-scope,
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] [tyt-chat-container].style-scope {
+    pointer-events: none;
+  }
+
+  body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #chat[class] {
+    pointer-events: auto;
   }
 
   `
