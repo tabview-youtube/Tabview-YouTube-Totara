@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.120
+// @version               5.0.200
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -233,6 +233,43 @@ const executionScript = (communicationKey) => {
       nodeList = null;
     }
 
+    let secondaryInnerHold = 0;
+
+    const secondaryInnerFn = (cb) => {
+      if (secondaryInnerHold) {
+        secondaryInnerHold++;
+        let err, r;
+        try {
+          r = cb();
+        } catch (e) {
+          err = e;
+        }
+        secondaryInnerHold--;
+        if (err) throw err;
+        return r;
+      } else {
+        const ea = document.querySelector("#secondary-inner");
+        const eb = document.querySelector("secondary-wrapper#secondary-inner-wrapper");
+        if (ea && eb) {
+          secondaryInnerHold++;
+          let err, r;
+          ea.id = "secondary-inner-";
+          eb.id = "secondary-inner";
+          try {
+            r = cb();
+          } catch (e) {
+            err = e;
+          }
+          ea.id = "secondary-inner";
+          eb.id = "secondary-inner-wrapper";
+          secondaryInnerHold--;
+          if (err) throw err;
+          return r;
+        } else {
+          return cb();
+        }
+      }
+    }
 
     // ==============================================================================================================================================================================================================================================================================
 
@@ -1205,8 +1242,10 @@ const executionScript = (communicationKey) => {
 
     const updateChatLocation498 = function () {
       if (this.is !== "ytd-watch-grid") {
-        this.updatePageMediaQueries();
-        this.schedulePlayerSizeUpdate_()
+        secondaryInnerFn(() => {
+          this.updatePageMediaQueries();
+          this.schedulePlayerSizeUpdate_();
+        });
       }
 
     }
@@ -2638,6 +2677,93 @@ const executionScript = (communicationKey) => {
           cProto.updateChatLocation = updateChatLocation498;
         }
 
+        if (!cProto.isTwoColumnsChanged498_ && typeof cProto.isTwoColumnsChanged_ === "function" && cProto.isTwoColumnsChanged_.length === 2) {
+          cProto.isTwoColumnsChanged498_ = cProto.isTwoColumnsChanged_;
+          cProto.isTwoColumnsChanged_ = function (arg1, arg2, ...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.isTwoColumnsChanged498_(arg1, arg2, ...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
+        if (!cProto.defaultTwoColumnLayoutChanged498 && typeof cProto.defaultTwoColumnLayoutChanged === "function" && cProto.defaultTwoColumnLayoutChanged.length === 0) {
+          cProto.defaultTwoColumnLayoutChanged498 = cProto.defaultTwoColumnLayoutChanged;
+          cProto.defaultTwoColumnLayoutChanged = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.defaultTwoColumnLayoutChanged498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+        
+        if (!cProto.updatePlayerLocation498 && typeof cProto.updatePlayerLocation === "function" && cProto.updatePlayerLocation.length === 0) {
+          cProto.updatePlayerLocation498 = cProto.updatePlayerLocation;
+          cProto.updatePlayerLocation = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.updatePlayerLocation498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
+        if (!cProto.updateCinematicsLocation498 && typeof cProto.updateCinematicsLocation === "function" && cProto.updateCinematicsLocation.length === 0) {
+          cProto.updateCinematicsLocation498 = cProto.updateCinematicsLocation;
+          cProto.updateCinematicsLocation = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.updateCinematicsLocation498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
+        if (!cProto.updatePanelsLocation498 && typeof cProto.updatePanelsLocation === "function" && cProto.updatePanelsLocation.length === 0) {
+          cProto.updatePanelsLocation498 = cProto.updatePanelsLocation;
+          cProto.updatePanelsLocation = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.updatePanelsLocation498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+        if (!cProto.swatcherooUpdatePanelsLocation498 && typeof cProto.swatcherooUpdatePanelsLocation === "function" && cProto.swatcherooUpdatePanelsLocation.length === 6) {
+          cProto.swatcherooUpdatePanelsLocation498 = cProto.swatcherooUpdatePanelsLocation;
+          cProto.swatcherooUpdatePanelsLocation = function (arg1, arg2, arg3, arg4, arg5, arg6, ...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.swatcherooUpdatePanelsLocation498(arg1, arg2, arg3, arg4, arg5, arg6, ...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
+        if (!cProto.updateErrorScreenLocation498 && typeof cProto.updateErrorScreenLocation === "function" && cProto.updateErrorScreenLocation.length === 0) {
+          cProto.updateErrorScreenLocation498 = cProto.updateErrorScreenLocation;
+          cProto.updateErrorScreenLocation = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.updateErrorScreenLocation498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
+        if (!cProto.updateFullBleedElementLocations498 && typeof cProto.updateFullBleedElementLocations === "function" && cProto.updateFullBleedElementLocations.length === 0) {
+          cProto.updateFullBleedElementLocations498 = cProto.updateFullBleedElementLocations;
+          cProto.updateFullBleedElementLocations = function (...args) {
+            const r = secondaryInnerFn(() => {
+              const r = this.updateFullBleedElementLocations498(...args);
+              return r;
+            });
+            return r;
+          };
+        }
+
       },
 
 
@@ -3787,6 +3913,7 @@ const executionScript = (communicationKey) => {
 
           const secondaryWrapper = document.createElement('secondary-wrapper');
           secondaryWrapper.classList.add("tabview-secondary-wrapper");
+          secondaryWrapper.id = "secondary-inner-wrapper";
           const secondaryInner = document.querySelector('#secondary-inner.style-scope.ytd-watch-flexy');
           
           inPageRearrange = true;
