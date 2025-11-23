@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.200
+// @version               5.0.201
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -5065,7 +5065,7 @@ const styles = {
       min-height: calc(100vh - var(--ytd-toolbar-height, 56px));
   }
 
-  ytd-watch-flexy[is-two-columns_] ytd-live-chat-frame#chat {
+  ytd-watch-flexy[is-two-columns_]:not([full-bleed-player]) ytd-live-chat-frame#chat {
       min-height: initial !important;
       height: initial !important;
   }
