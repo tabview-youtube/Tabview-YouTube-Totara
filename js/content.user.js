@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.202
+// @version               5.0.203
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -149,19 +149,49 @@ const executionScript = (communicationKey) => {
       return HTMLElement_.prototype.querySelectorAll.call(elm, selector);
     }
 
+    const defineProperties = (p, o) => {
+      if (!p) {
+        console.warn(`defineProperties ERROR: Prototype is undefined`);
+        return;
+      }
+      for (const k of Object.keys(o)) {
+        if (!o[k]) {
+          console.warn(`defineProperties ERROR: Property ${k} is undefined`);
+          delete o[k];
+        }
+      }
+      return Object.defineProperties(p, o);
+    }
+
+    const replaceChildrenPolyfill = function replaceChildren(...new_children) {
+      let el = this.firstChild;
+      while (el) {
+        const next = el.nextSibling;
+        el.remove();
+        el = next;
+      }
+      this.append(...new_children);
+    };
+
     const pdsBaseDF = Object.getOwnPropertyDescriptors(DocumentFragment.prototype);
 
-    Object.defineProperties(DocumentFragment.prototype, {
-      replaceChildren000: pdsBaseDF.replaceChildren,
-    });
+    if (pdsBaseDF.replaceChildren) {
+      defineProperties(DocumentFragment.prototype, {
+        replaceChildren000: pdsBaseDF.replaceChildren,
+      });
+    } else {
+      DocumentFragment.prototype.replaceChildren000 = replaceChildrenPolyfill;
+    }
+
 
     const pdsBaseNode = Object.getOwnPropertyDescriptors(Node.prototype);
     // console.log(pdsBaseElement.setAttribute, pdsBaseElement.getAttribute)
-
-    Object.defineProperties(Node.prototype, {
-      appendChild000: pdsBaseNode.appendChild,
-      insertBefore000: pdsBaseNode.insertBefore
-    });
+    if (!pdsBaseNode.appendChild000 && !pdsBaseNode.insertBefore000) {
+      defineProperties(Node.prototype, {
+        appendChild000: pdsBaseNode.appendChild,
+        insertBefore000: pdsBaseNode.insertBefore
+      });
+    }
 
     // class BaseElement extends Element{
 
@@ -169,14 +199,24 @@ const executionScript = (communicationKey) => {
     const pdsBaseElement = Object.getOwnPropertyDescriptors(Element.prototype);
     // console.log(pdsBaseElement.setAttribute, pdsBaseElement.getAttribute)
 
-    Object.defineProperties(Element.prototype, {
-      setAttribute000: pdsBaseElement.setAttribute,
-      getAttribute000: pdsBaseElement.getAttribute,
-      hasAttribute000: pdsBaseElement.hasAttribute,
-      removeAttribute000: pdsBaseElement.removeAttribute,
-      querySelector000: pdsBaseElement.querySelector,
-      replaceChildren000: pdsBaseElement.replaceChildren
-    });
+    if (!pdsBaseElement.setAttribute000 && !pdsBaseElement.querySelector000) {
+
+      const nPdsElement = {
+        setAttribute000: pdsBaseElement.setAttribute,
+        getAttribute000: pdsBaseElement.getAttribute,
+        hasAttribute000: pdsBaseElement.hasAttribute,
+        removeAttribute000: pdsBaseElement.removeAttribute,
+        querySelector000: pdsBaseElement.querySelector,
+      };
+
+      if (pdsBaseElement.replaceChildren) {
+        nPdsElement.replaceChildren000 = pdsBaseElement.replaceChildren;
+      } else {
+        Element.prototype.replaceChildren000 = replaceChildrenPolyfill;
+      }
+
+      defineProperties(Element.prototype, nPdsElement);
+    }
 
     Element.prototype.setAttribute111 = function (p, v) {
       v = `${v}`;
