@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.201
+// @version               5.0.202
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4915,7 +4915,7 @@ const styles = {
 
   }
 
-  @supports (color: var(--tyt-cm-count-define)){
+  @supports (color: var(--tyt-cm-count-define)) {
 
   ytd-watch-flexy {
       --tyt-x-loading-content-letter-spacing: 2px;
@@ -5298,7 +5298,7 @@ const styles = {
   }
 
   #tab-comments ytd-comments#comments [field-of-cm-count]{
-    margin-top:0;
+      margin-top:0;
   }
     /*
 
@@ -5315,21 +5315,21 @@ const styles = {
   */
 
   #tab-info > ytd-expandable-video-description-body-renderer {
-    margin-bottom: var(--ytd-margin-3x);
+      margin-bottom: var(--ytd-margin-3x);
   }
 
   #tab-info [class]:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
+      margin-bottom: 0;
+      padding-bottom: 0;
   }
 
 
   #tab-info ytd-rich-metadata-row-renderer ytd-rich-metadata-renderer {
-    max-width: initial;
+      max-width: initial;
   }
 
   ytd-watch-flexy[is-two-columns_] secondary-wrapper #chat.ytd-watch-flexy {
-    margin-bottom: var(--ytd-margin-3x);
+      margin-bottom: var(--ytd-margin-3x);
   }
 
   ytd-watch-flexy[tyt-tab] tp-yt-paper-tooltip {
@@ -5338,17 +5338,15 @@ const styles = {
   }
 
 
-  ytd-watch-info-text tp-yt-paper-tooltip.style-scope.ytd-watch-info-text{
-    margin-bottom: -300px;
-    margin-top: -96px;
+  ytd-watch-info-text tp-yt-paper-tooltip.style-scope.ytd-watch-info-text {
+      margin-bottom: -300px;
+      margin-top: -96px;
   }
 
 
   [hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata {
-  
-  font-size: 1.2rem;
-  line-height: 1.8rem;
-
+      font-size: 1.2rem;
+      line-height: 1.8rem;
   }
 
   [hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata yt-animated-rolling-number{
@@ -5357,7 +5355,7 @@ const styles = {
 
 
   [hide-default-text-inline-expander] #bottom-row #description.ytd-watch-metadata #info-container.style-scope.ytd-watch-info-text{
-    align-items: center;
+      align-items: center;
   }
 
 
@@ -5586,6 +5584,22 @@ const styles = {
 
   body[data-ytlstm-theater-mode] [data-ytlstm-chat-over-video] #chat[class] {
     pointer-events: auto;
+  }
+
+  @supports (color: var(--tyt-fix-20251124)) {
+    /* #below ytd-watch-metadata fix */
+    /* 20251124 */
+    #below ytd-watch-metadata .ytTextCarouselItemViewModelImageType {
+        height: 16px;
+        width: 16px;
+    }
+    #below ytd-watch-metadata yt-text-carousel-item-view-model {
+        column-gap: 6px;
+    }
+    #below ytd-watch-metadata ytd-watch-info-text#ytd-watch-info-text {
+        font-size: inherit;
+        line-height: inherit;
+    }
   }
 
   `
