@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.203
+// @version               5.0.204
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2337,11 +2337,29 @@ const executionScript = (communicationKey) => {
       } catch (e) { }
     };
 
+    const setExpand = (cnt) => {
+      if (typeof cnt.set === "function") {
+        cnt.set("isExpanded", true);
+        if (typeof cnt.isExpandedChanged === "function") cnt.isExpandedChanged();
+      } else if (cnt.isExpanded === false) {
+        cnt.isExpanded = true;
+        if (typeof cnt.isExpandedChanged === "function") cnt.isExpandedChanged();
+      }
+    };
+
     const fixInlineExpanderMethods = (inlineExpanderCnt) => {
       if (inlineExpanderCnt && !inlineExpanderCnt.__$$idncjk8487$$__) {
         inlineExpanderCnt.__$$idncjk8487$$__ = true;
         inlineExpanderCnt.updateTextOnSnippetTypeChange = function () {
-          true || this.isResetMutation && this.mutationCallback();
+          if (this.isExpanded === true) {
+            this.isExpanded = false;
+            setExpand(this, true);
+          }
+          try {
+            true || this.isResetMutation && this.mutationCallback();
+          } catch (e) {
+            console.error(e);
+          }
         }
         // inlineExpanderCnt.hasAttributedStringText = true;
         inlineExpanderCnt.isResetMutation = true;
@@ -2415,7 +2433,7 @@ const executionScript = (communicationKey) => {
 
           if (lockGet['autoExpandInfoDescAttrAsyncLock'] !== lockId) return;
 
-          const mainInfo = getMainInfo();
+            const mainInfo = getMainInfo();
 
           if (!mainInfo) return;
           switch (((mainInfo || 0).nodeName || '').toLowerCase()) {
@@ -2434,8 +2452,7 @@ const executionScript = (communicationKey) => {
               const inlineExpanderElm = mainInfo.querySelector('ytd-text-inline-expander');
               const inlineExpanderCnt = insp(inlineExpanderElm);
               if (inlineExpanderCnt && inlineExpanderCnt.isExpanded === false) {
-                inlineExpanderCnt.isExpanded = true;
-                inlineExpanderCnt.isExpandedChanged();
+                setExpand(inlineExpanderCnt, true);
                 // holdInlineExpanderAlwaysExpanded(inlineExpanderCnt);
               }
               break;
