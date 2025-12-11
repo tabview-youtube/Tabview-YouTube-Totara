@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.204
+// @version               5.0.205
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2351,10 +2351,8 @@ const executionScript = (communicationKey) => {
       if (inlineExpanderCnt && !inlineExpanderCnt.__$$idncjk8487$$__) {
         inlineExpanderCnt.__$$idncjk8487$$__ = true;
         inlineExpanderCnt.updateTextOnSnippetTypeChange = function () {
-          if (this.isExpanded === true) {
-            this.isExpanded = false;
-            setExpand(this, true);
-          }
+          if (this.isExpanded === true) this.isExpanded = false;
+          setExpand(this, true);
           try {
             true || this.isResetMutation && this.mutationCallback();
           } catch (e) {
