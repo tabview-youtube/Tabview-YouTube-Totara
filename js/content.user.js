@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.205
+// @version               5.0.206
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -2347,20 +2347,45 @@ const executionScript = (communicationKey) => {
       }
     };
 
+    const cloneMethods = {
+      updateTextOnSnippetTypeChange() {
+        if (this.isResetMutation === false) this.isResetMutation = true;
+        if (this.isExpanded === true) this.isExpanded = false;
+        setExpand(this, true);
+        if (this.isResetMutation === false) this.isResetMutation = true;
+        try {
+          true || this.isResetMutation && this.mutationCallback();
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      collapse(){
+      },
+      computeExpandButtonOffset(){
+        return 0;
+      },
+      dataChanged(){
+
+      }
+    }
     const fixInlineExpanderMethods = (inlineExpanderCnt) => {
       if (inlineExpanderCnt && !inlineExpanderCnt.__$$idncjk8487$$__) {
         inlineExpanderCnt.__$$idncjk8487$$__ = true;
-        inlineExpanderCnt.updateTextOnSnippetTypeChange = function () {
-          if (this.isExpanded === true) this.isExpanded = false;
-          setExpand(this, true);
-          try {
-            true || this.isResetMutation && this.mutationCallback();
-          } catch (e) {
-            console.error(e);
-          }
+        inlineExpanderCnt.dataChanged = cloneMethods.dataChanged;
+        inlineExpanderCnt.updateTextOnSnippetTypeChange = cloneMethods.updateTextOnSnippetTypeChange;
+        if (typeof inlineExpanderCnt.collapse === "function") {
+          inlineExpanderCnt.collapse = cloneMethods.collapse;
+        }
+        if (typeof inlineExpanderCnt.computeExpandButtonOffset === "function") {
+          inlineExpanderCnt.computeExpandButtonOffset = cloneMethods.computeExpandButtonOffset;
         }
         // inlineExpanderCnt.hasAttributedStringText = true;
-        inlineExpanderCnt.isResetMutation = true;
+        if (typeof inlineExpanderCnt.isResetMutation === "boolean") {
+          inlineExpanderCnt.isResetMutation = true;
+        }
+        if (typeof inlineExpanderCnt.collapseLabel === "string") {
+          inlineExpanderCnt.collapseLabel = "";
+        }
         fixInlineExpanderDisplay(inlineExpanderCnt); // do the initial fix
       }
     };
@@ -5173,6 +5198,10 @@ const styles = {
 
   #tab-info [show-expand-button] #expand-sizer.ytd-text-inline-expander{
     visibility: initial;
+  }
+
+  #collapse.button.ytd-text-inline-expander {
+    display: none;
   }
 
 
