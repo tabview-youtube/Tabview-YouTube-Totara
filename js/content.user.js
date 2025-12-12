@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.206
+// @version               5.0.207
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -8,20 +8,19 @@
 
 // @name:zh-TW            Tabview YouTube Totara
 // @name:ja               Tabview YouTube Totara
-// @description           To make tabs for Info, Comments, Videos and Playlist
+// @description           To make tabs for Info, Comments and Videos
 
-// @description:es        Para crear pestañas para Información, Comentarios, Videos y Lista de reproducción
-// @description:fr        Pour créer des onglets pour Infos, Commentaires, Vidéos et Playlist
-// @description:de        Um Tabs für Informationen, Kommentare, Videos und Playlist zu erstellen
-// @description:zh        制作信息、评论、视频和播放列表的标签
-// @description:zh-CN     制作信息、评论、视频和播放列表的标签
-// @description:zh-TW     製作資訊、評論、影片和播放列表的標籤
-// @description:zh-HK     製作資訊、評論、影片視頻和播放列表的標籤
-// @description:ja        情報、コメント、動画、および再生リストのタブを作成するために
-// @description:ko        정보, 댓글, 동영상 및 재생 목록에 대한 탭 만들기
-// @description:ru        Чтобы создать вкладки для Информации, Комментариев, Видео и Плейлиста
-// @description:pt        Para fazer abas para Informações, Comentários, Vídeos e Playlist
-// @description:ar        لإنشاء علامات تبويب للمعلومات والتعليقات والفيديو وقائمة التشغيل
+// @description:es        Para crear pestañas para Información, Comentarios y Videos
+// @description:fr        Pour créer des onglets pour Infos, Commentaires et Vidéos
+// @description:de        Um Tabs für Informationen, Kommentare und Videos zu erstellen
+// @description:zh        制作信息、评论和视频的标签
+// @description:zh-CN     制作信息、评论和视频的标签
+// @description:zh-TW     製作資訊、評論和影片的標籤
+// @description:zh-HK     製作資訊、評論和影片的標籤
+// @description:ja        情報、コメントおよび動画のタブを作成するために
+// @description:ko        정보, 댓글 및 동영상에 대한 탭 만들기
+// @description:ru        Чтобы создать вкладки для Информации, Комментариев и Видео
+// @description:pt        Para criar abas para Informações, Comentários e Vídeos
 
 // @icon                  https://raw.githubusercontent.com/tabview-youtube/Tabview-YouTube-Totara/main/images/icon128p.png
 // @supportURL            https://github.com/tabview-youtube/Tabview-YouTube-Totara
@@ -5200,7 +5199,7 @@ const styles = {
     visibility: initial;
   }
 
-  #collapse.button.ytd-text-inline-expander {
+  #tab-info #collapse.button.ytd-text-inline-expander {
     display: none;
   }
 
