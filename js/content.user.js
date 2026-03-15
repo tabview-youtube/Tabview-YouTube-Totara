@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.207
+// @version               5.0.208
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4975,7 +4975,7 @@ const styles = {
 
   ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"],
   ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"]:hover {
-      --tyt-tab-btn-color: var(--yt-spec-icon-disabled);
+      --tyt-tab-btn-color: var(--yt-spec-text-disabled);
   }
 
   ytd-watch-flexy[tyt-comment-disabled] #right-tabs .tab-btn[tyt-tab-content="#tab-comments"] span#tyt-cm-count:empty{
