@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.209
+// @version               5.0.210
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -5721,7 +5721,7 @@ const styles = {
   // button.click();
   // button = null;
 
-  GM_addElement(document.head || document.documentElement, "script", { textContent: createHTML(textContent) });
+  GM_addElement(document.head || document.documentElement, "script", { textContent: textContent });
 
   let style = document.createElement('style');
   const sourceURLMainCSS = 'debug://tabview-youtube/tabview.main.css';
