@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.208
+// @version               5.0.209
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -5716,11 +5716,12 @@ const styles = {
   //   });
   // }
 
-  let button = document.createElement('button');
-  button.setAttribute('onclick', createHTML(textContent)); // max size 10 million bytes
-  button.click();
-  button = null;
+  // let button = document.createElement('button');
+  // button.setAttribute('onclick', createHTML(textContent)); // max size 10 million bytes
+  // button.click();
+  // button = null;
 
+  GM_addElement(document.head || document.documentElement, "script", { textContent: createHTML(textContent) });
 
   let style = document.createElement('style');
   const sourceURLMainCSS = 'debug://tabview-youtube/tabview.main.css';
