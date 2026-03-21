@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.212
+// @version               5.0.213
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4651,7 +4651,8 @@ const styles = {
     top: 0;
     right: 0;
     left: 0;
-    contain: strict;
+    /* contain: strict; */
+    contain: size style; /* allow overflow popup */
     padding-top: var(--tyt-secondary-mt);
     padding-right: var(--tyt-secondary-mr);
     padding-bottom: var(--tyt-secondary-mb);
@@ -4859,7 +4860,8 @@ const styles = {
   ytd-watch-flexy[is-two-columns_] #right-tabs .tab-content-cld {
       height: 100%;
       width: 100%;
-      contain: size layout paint style;
+      /* contain: size layout paint style; */
+      contain: size style; /* allow overflow popup */
       position: absolute;
   }
 
