@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.211
+// @version               5.0.212
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4626,15 +4626,15 @@ const styles = {
   }
     */
 
-  ytd-watch-flexy {
-    --tyt-secondary-mt: --ytd-margin-6x;
-    --tyt-secondary-mb: --ytd-margin-6x;
-    --tyt-secondary-mr: --ytd-margin-6x;
+  ytd-watch-flexy #secondary {
+    --tyt-secondary-mt: var(--ytd-margin-6x);
+    --tyt-secondary-mb: var(--ytd-margin-6x);
+    --tyt-secondary-mr: var(--ytd-margin-6x);
   }
 
-  ytd-watch-flexy[reduced-top-margin] {
-    --tyt-secondary-mt: --ytd-margin-3x;
-    --tyt-secondary-mb: --ytd-margin-3x;
+  ytd-watch-flexy[reduced-top-margin] #secondary {
+    --tyt-secondary-mt: var(--ytd-margin-3x);
+    --tyt-secondary-mb: var(--ytd-margin-3x);
   }
 
   secondary-wrapper {
