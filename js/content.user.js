@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.213
+// @version               5.0.214
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4888,9 +4888,11 @@ const styles = {
       --tyt-tab-btn-flex-grow: 1;
       --tyt-tab-btn-flex-basis: 0%;
       --tyt-tab-bar-color-1-def: #ff4533;
-      --tyt-tab-bar-color-2-def: var(--yt-brand-light-red);
-      --tyt-tab-bar-color-1:var(--main-color, var(--tyt-tab-bar-color-1-def));
-      --tyt-tab-bar-color-2:var(--main-color, var(--tyt-tab-bar-color-2-def));
+      --tyt-tab-bar-color-2-def: var(--accent-color, var(--yt-brand-light-red));
+      --tyt-tab-bar-color-1: var(--main-color, var(--tyt-tab-bar-color-1-def));
+      --tyt-tab-bar-color-2: var(--main-color, var(--tyt-tab-bar-color-2-def));
+      --tyt-tab-text-primary: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary));
+      --tyt-tab-text-secondary: var(--yt-sys-color-baseline--text-secondary, var(--yt-spec-text-secondary));
   }
 
   ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content] {
@@ -4905,7 +4907,7 @@ const styles = {
       display: inline-block;
       text-decoration: none;
       text-transform: uppercase;
-      --tyt-tab-btn-color: var(--yt-spec-text-secondary);
+      --tyt-tab-btn-color: var(--tyt-tab-text-secondary);
       color: var(--tyt-tab-btn-color);
       text-align: center;
       padding: 14px 8px 10px;
@@ -4959,7 +4961,7 @@ const styles = {
   ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content].active {
       font-weight: 500;
       outline: 0;
-      --tyt-tab-btn-color: var(--yt-spec-text-primary);
+      --tyt-tab-btn-color: var(--tyt-tab-text-primary);
       background-color: var(--ytd-searchbox-legacy-button-focus-color);
       border-bottom: 4px var(--tyt-tab-bar-color-1) solid;
       border-bottom-color: var(--tyt-tab-bar-color-2);
@@ -4971,7 +4973,7 @@ const styles = {
 
   ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]:not(.active):hover {
       background-color: var(--ytd-searchbox-legacy-button-hover-color);
-      --tyt-tab-btn-color: var(--yt-spec-text-primary);
+      --tyt-tab-btn-color: var(--tyt-tab-text-primary);
   }
 
   ytd-watch-flexy #right-tabs .tab-btn[tyt-tab-content]:not(.active):hover svg {
@@ -5079,7 +5081,7 @@ const styles = {
       /* hide zoom btn for FireFox */
       width: 12px;
       height: 12px;
-      color: var(--yt-spec-text-secondary);
+      color: var(--tyt-tab-text-secondary);
       background-color: var(--yt-spec-badge-chip-background);
       box-sizing: border-box;
       cursor: pointer;
@@ -5095,7 +5097,7 @@ const styles = {
   }
 
   .font-size-btn:hover {
-      background-color: var(--yt-spec-text-primary);
+      background-color: var(--tyt-tab-text-primary);
       color: var(--yt-spec-general-background-a);
   }
 
