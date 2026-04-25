@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.214
+// @version               5.0.215
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -4888,7 +4888,7 @@ const styles = {
       --tyt-tab-btn-flex-grow: 1;
       --tyt-tab-btn-flex-basis: 0%;
       --tyt-tab-bar-color-1-def: #ff4533;
-      --tyt-tab-bar-color-2-def: var(--accent-color, var(--yt-brand-light-red));
+      --tyt-tab-bar-color-2-def: var(--yt-sys-color-baseline--genai-4, var(--yt-sys-color-baseline--static-brand-red, var(--accent-color, var(--yt-brand-light-red))));
       --tyt-tab-bar-color-1: var(--main-color, var(--tyt-tab-bar-color-1-def));
       --tyt-tab-bar-color-2: var(--main-color, var(--tyt-tab-bar-color-2-def));
       --tyt-tab-text-primary: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary));
