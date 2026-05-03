@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.215
+// @version               5.0.216
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -1164,31 +1164,45 @@ const executionScript = (communicationKey) => {
 
     function ytBtnEgmPanelCore(arr) {
 
-      if (!arr) return
-      if (!('length' in arr)) arr = [arr]
+      if (!arr) return;
+      if (!('length' in arr)) arr = [arr];
 
       const ytdFlexyElm = elements.flexy;
       if (!ytdFlexyElm) return;
 
-      let actions = []
+      let actions = [];
 
       for (const entry of arr) {
 
         if (!entry) continue;
 
-        let panelId = entry.panelId
+        let panelId = entry.panelId;
 
-        let toHide = entry.toHide
-        let toShow = entry.toShow
+        let toHide = entry.toHide;
+        let toShow = entry.toShow;
 
         if (toHide === true && !toShow) {
 
+          /*
           actions.push({
             "changeEngagementPanelVisibilityAction": {
               "targetId": panelId,
               "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
             }
-          })
+          });
+
+          actions.push({
+            "hideEngagementPanelEndpoint": {
+              "identifier": panelId,
+            }
+          });
+          */
+
+          actions.push({
+            "hideEngagementPanelEndpoint": {
+              "panelIdentifier": panelId,
+            }
+          });
 
         } else if (toShow === true && !toHide) {
 
@@ -1199,24 +1213,23 @@ const executionScript = (communicationKey) => {
           })
 
         }
-
-        if (actions.length > 0) {
-          const cnt = insp(ytdFlexyElm);
-
-          cnt.resolveCommand(
-            {
-              "signalServiceEndpoint": {
-                "signal": "CLIENT_SIGNAL",
-                "actions": actions
-              }
-            },
-
-            {},
-            false);
-        }
-        actions = null;
-
       }
+
+      if (actions.length > 0) {
+        const cnt = insp(ytdFlexyElm);
+        cnt.resolveCommand(
+          {
+            "signalServiceEndpoint": {
+              "signal": "CLIENT_SIGNAL",
+              "actions": actions
+            }
+          },
+
+          {},
+          false);
+      }
+      actions = null;
+
     }
 
     /*
@@ -1246,6 +1259,23 @@ const executionScript = (communicationKey) => {
     }
     */
 
+    function getPanelIdentifier(panelElm) {
+      const cnt = insp(panelElm);
+      const panelIdentifier = (cnt.data || 0).panelIdentifier;
+      if (panelIdentifier && typeof panelIdentifier === "string") {
+        return panelIdentifier;
+      }
+      const tag = ((cnt.data || 0).identifier || 0).tag;
+      if (tag && typeof tag === "string") {
+        return tag;
+      }
+      const targetId = (cnt.data || 0).targetId;
+      if (targetId && typeof targetId === "string") {
+        return targetId;
+      }
+      const id = panelElm.getAttribute000('target-id') || "";
+      return id;
+    }
 
     function ytBtnCloseEngagementPanels() {
 
@@ -1254,8 +1284,9 @@ const executionScript = (communicationKey) => {
         `ytd-watch-flexy[tyt-tab] #panels.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility]:not([hidden])`
       )) {
         if (panelElm.getAttribute('visibility') == "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED" && !panelElm.closest('[hidden]')) {
+          const pid = getPanelIdentifier(panelElm);
           actions.push({
-            panelId: panelElm.getAttribute000('target-id'),
+            panelId: pid,
             toHide: true
           });
         }
@@ -1685,8 +1716,9 @@ const executionScript = (communicationKey) => {
         const actions = [];
         for (const panelElm of allVisiblePanels) {
           if (panelElm === targetVisible) continue;
+          const pid = getPanelIdentifier(panelElm);
           actions.push({
-            panelId: panelElm.getAttribute000('target-id'),
+            panelId: pid,
             toHide: true
           });
         }
@@ -3721,6 +3753,16 @@ const executionScript = (communicationKey) => {
 
         if (!hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer')) return;
 
+        if (hostElement.getAttribute('target-id') === null && hostElement.hasAttribute("visibility") && hostElement.matches('#panels.ytd-watch-flexy > ytd-engagement-panel-section-list-renderer[visibility*="ENGAGEMENT_PANEL_VISIBILITY_"]')) {
+          // add an id for modern transcript panel (engagement-panel-timeline-view-consolidated)
+          let tid = "";
+          try {
+            tid = crypto.randomUUID();
+          } catch {
+            tid = Date.now().toString(36) + "-" + Math.random().toString(36).substring(2);
+          }
+          hostElement.setAttribute000('target-id', "tid051-" + tid);
+        }
 
         if (hostElement.hasAttribute000('target-id') && hostElement.hasAttribute000('visibility')) {
 
@@ -5274,7 +5316,7 @@ const styles = {
 
   body ytd-watch-flexy[is-two-columns_][tyt-egm-panel_] #columns.style-scope.ytd-watch-flexy #panels.style-scope.ytd-watch-flexy ytd-engagement-panel-section-list-renderer[target-id][visibility="ENGAGEMENT_PANEL_VISIBILITY_EXPANDED"]{
 
-      height: initial;
+      height: 0; /* height: initial; */
       max-height: initial;
       min-height: initial;
       flex-grow: 1;
