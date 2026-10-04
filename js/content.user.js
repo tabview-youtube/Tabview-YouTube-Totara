@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.0.217
+// @version               5.1.0
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -409,6 +409,16 @@ const executionScript = (communicationKey) => {
 
     const delayPn = delay => new Promise((fn => setTimeout(fn, delay)));
 
+    const fxOperator = (proto, propertyName) => {
+      let propertyDescriptorGetter = null;
+      try {
+        propertyDescriptorGetter = Object.getOwnPropertyDescriptor(proto, propertyName).get;
+      } catch (e) { }
+      return typeof propertyDescriptorGetter === 'function' ? (e) => propertyDescriptorGetter.call(e) : (e) => e[propertyName];
+    };
+
+    const nodeParent = fxOperator(Node.prototype, 'parentNode');
+
     const insp = o => o ? (o.polymerController || o.inst || o || 0) : (o || 0);
 
     const setTimeout_ = setTimeout.bind(window);
@@ -427,6 +437,9 @@ const executionScript = (communicationKey) => {
         }
       };
     })();
+
+    const _querySelector = HTMLElement.prototype.__shady_native_querySelector || HTMLElement.prototype.querySelector;
+    const closestFromAnchor = HTMLElement.prototype.closest;
 
     // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
     var nextBrowserTick = void 0 !== nextBrowserTick && nextBrowserTick.version >= 2 ? nextBrowserTick : (() => {
@@ -448,7 +461,7 @@ const executionScript = (communicationKey) => {
     // ------------------------------------------------------------------------ nextBrowserTick ------------------------------------------------------------------------
 
     const isPassiveArgSupport = (typeof IntersectionObserver === 'function');
-    const bubblePassive = isPassiveArgSupport ? { capture: false, passive: true } : false;
+    // const bubblePassive = isPassiveArgSupport ? { capture: false, passive: true } : false;
     const capturePassive = isPassiveArgSupport ? { capture: true, passive: true } : true;
 
 
@@ -585,14 +598,16 @@ const executionScript = (communicationKey) => {
 
     const svgPlayList = `<path d="M0 3h12v2H0zm0 4h12v2H0zm0 4h8v2H0zm16 0V7h-2v4h-4v2h4v4h2v-4h4v-2z"/>`.trim();
 
-    const svgDiag1 = `<svg stroke="currentColor" fill="none"><path d="M8 2h2v2M7 5l3-3m-6 8H2V8m0 2l3-3"/></svg>`;
-    const svgDiag2 = `<svg stroke="currentColor" fill="none"><path d="M7 3v2h2M7 5l3-3M5 9V7H3m-1 3l3-3"/></svg>`;
+    /*
+      const svgDiag1 = `<svg stroke="currentColor" fill="none"><path d="M8 2h2v2M7 5l3-3m-6 8H2V8m0 2l3-3"/></svg>`;
+      const svgDiag2 = `<svg stroke="currentColor" fill="none"><path d="M7 3v2h2M7 5l3-3M5 9V7H3m-1 3l3-3"/></svg>`;
 
 
-    const getGMT = () => {
-      let m = new Date('2023-01-01T00:00:00Z');
-      return m.getDate() === 1 ? `+${m.getHours()}` : `-${24 - m.getHours()}`;
-    };
+      const getGMT = () => {
+        let m = new Date('2023-01-01T00:00:00Z');
+        return m.getDate() === 1 ? `+${m.getHours()}` : `-${24 - m.getHours()}`;
+      };
+    */
 
     function getWord(tag) {
       return langWords[pageLang][tag] || langWords['en'][tag] || '';
@@ -1803,6 +1818,36 @@ const executionScript = (communicationKey) => {
       }
 
 
+      function findContentsRenderer(ytNode) {
+
+        let pNode = ytNode;
+        const ytNodeData = insp(ytNode).data;
+        if (!ytNodeData || typeof ytNodeData !== 'object') return;
+        while ((pNode = nodeParent(pNode)) instanceof HTMLElement) {
+          const contents = (insp(pNode).data || 0).contents; // data
+          if (typeof contents === 'object' && typeof contents.length === 'number') {
+            let index = -1;
+            let j = 0;
+            for (const content of contents) {
+              let mz = ((content.commentThreadRenderer || 0).comment || 0).commentRenderer || content.commentRenderer; // data
+              if (mz && mz.commentId === ytNodeData.commentId) { // top comment or sub comment
+                index = j;
+                break;
+              }
+              j++;
+            }
+            return {
+              parent: pNode,
+              index
+            }
+          }
+          if (pNode.nodeName === 'YTD-COMMENTS') break;
+        }
+        return null;
+
+      }
+
+
       function lcSwapFuncA(targetLcId, currentLcId) {
 
 
@@ -1900,6 +1945,10 @@ const executionScript = (communicationKey) => {
           console.warn(e)
         }
         return done === 1;
+      }
+
+      function isVideoPlaying(video) {
+        return video.currentTime > 0 && !video.paused && !video.ended && video.readyState > video.HAVE_CURRENT_DATA;
       }
 
       const loadStartFx = async (evt) => {
