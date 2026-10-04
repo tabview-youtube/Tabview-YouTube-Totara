@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name                  Tabview YouTube Totara
-// @version               5.1.0
+// @version               5.1.1
 // @namespace             https://www.youtube.com/
 // @author                CY Fung
 // @license               MIT
@@ -25,9 +25,6 @@
 // @icon                  https://raw.githubusercontent.com/tabview-youtube/Tabview-YouTube-Totara/main/images/icon128p.png
 // @supportURL            https://github.com/tabview-youtube/Tabview-YouTube-Totara
 // @run-at                document-start
-// @grant                 GM_getResourceText
-// @grant                 GM.getResourceText
-// @grant                 GM_registerMenuCommand
 // @grant                 GM_addElement
 // @noframes
 // @exclude               /^https?://\w+\.youtube\.com\/live_chat.*$/
